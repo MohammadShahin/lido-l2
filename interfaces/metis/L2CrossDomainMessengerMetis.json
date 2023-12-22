@@ -1,0 +1,114 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "_l1CrossDomainMessenger",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [{ "type": "address", "name": "", "internalType": "address" }],
+    "name": "l1CrossDomainMessenger",
+    "inputs": []
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }],
+    "name": "messageNonce",
+    "inputs": []
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "relayMessage",
+    "inputs": [
+      { "type": "address", "name": "_target", "internalType": "address" },
+      { "type": "address", "name": "_sender", "internalType": "address" },
+      { "type": "bytes", "name": "_message", "internalType": "bytes" },
+      { "type": "uint256", "name": "_messageNonce", "internalType": "uint256" }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }],
+    "name": "relayedMessages",
+    "inputs": [{ "type": "bytes32", "name": "", "internalType": "bytes32" }]
+  },
+  {
+    "type": "function",
+    "stateMutability": "payable",
+    "outputs": [],
+    "name": "sendMessage",
+    "inputs": [
+      { "type": "address", "name": "_target", "internalType": "address" },
+      { "type": "bytes", "name": "_message", "internalType": "bytes" },
+      { "type": "uint32", "name": "_gasLimit", "internalType": "uint32" }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "payable",
+    "outputs": [],
+    "name": "sendMessageViaChainId",
+    "inputs": [
+      { "type": "uint256", "name": "_chainId", "internalType": "uint256" },
+      { "type": "address", "name": "_target", "internalType": "address" },
+      { "type": "bytes", "name": "_message", "internalType": "bytes" },
+      { "type": "uint32", "name": "_gasLimit", "internalType": "uint32" }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }],
+    "name": "sentMessages",
+    "inputs": [{ "type": "bytes32", "name": "", "internalType": "bytes32" }]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }],
+    "name": "successfulMessages",
+    "inputs": [{ "type": "bytes32", "name": "", "internalType": "bytes32" }]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [{ "type": "address", "name": "", "internalType": "address" }],
+    "name": "xDomainMessageSender",
+    "inputs": []
+  },
+  {
+    "type": "event",
+    "name": "FailedRelayedMessage",
+    "inputs": [{ "type": "bytes32", "name": "msgHash", "indexed": true }],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RelayedMessage",
+    "inputs": [{ "type": "bytes32", "name": "msgHash", "indexed": true }],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SentMessage",
+    "inputs": [
+      { "type": "address", "name": "target", "indexed": true },
+      { "type": "address", "name": "sender", "indexed": false },
+      { "type": "bytes", "name": "message", "indexed": false },
+      { "type": "uint256", "name": "messageNonce", "indexed": false },
+      { "type": "uint256", "name": "gasLimit", "indexed": false },
+      { "type": "uint256", "name": "chainId", "indexed": false }
+    ],
+    "anonymous": false
+  }
+]
