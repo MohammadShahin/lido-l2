@@ -43,12 +43,18 @@ const config: HardhatUserConfig = {
     eth_goerli: {
       url: env.string("RPC_ETH_GOERLI", ""),
     },
+    eth_holesky: {
+      url: env.string("RPC_ETH_HOLESKY", ""),
+    },
 
     // Ethereum Fork Chains
     eth_mainnet_fork: {
       url: "http://localhost:8545",
     },
     eth_goerli_fork: {
+      url: "http://localhost:8545",
+    },
+    eth_holesky_fork: {
       url: "http://localhost:8545",
     },
 
@@ -83,6 +89,28 @@ const config: HardhatUserConfig = {
     opt_goerli_fork: {
       url: "http://localhost:9545",
     },
+
+    // Metis Public Chains
+    mts_mainnet: {
+      url: env.string("RPC_MTS_MAINNET", ""),
+    },
+    mts_holesky: {
+      url: env.string("RPC_MTS_HOLESKY", ""),
+    },
+    mts_goerli: {
+      url: env.string("RPC_MTS_GOERLI", ""),
+    },
+
+    // Metis Fork Chains
+    mts_mainnet_fork: {
+      url: "http://localhost:4000",
+    },
+    mts_holesky_fork: {
+      url: "http://localhost:4000",
+    },
+    mts_goerli_fork: {
+      url: "http://localhost:4000",
+    },
   },
   gasReporter: {
     enabled: env.string("REPORT_GAS", "false") !== "false",
@@ -96,6 +124,9 @@ const config: HardhatUserConfig = {
       arbitrumOne: env.string("ETHERSCAN_API_KEY_ARB", ""),
       optimisticEthereum: env.string("ETHERSCAN_API_KEY_OPT", ""),
       optimisticGoerli: env.string("ETHERSCAN_API_KEY_OPT", ""),
+      metisMainnet: env.string("ETHERSCAN_API_KEY_MTS", ""),
+      metisHolesky: env.string("ETHERSCAN_API_KEY_MTS", ""),
+      metisGoerli: env.string("ETHERSCAN_API_KEY_MTS", ""),
     },
   },
   typechain: {
@@ -103,6 +134,7 @@ const config: HardhatUserConfig = {
       "./interfaces/**/*.json",
       "./utils/optimism/artifacts/*.json",
       "./utils/arbitrum/artifacts/*.json",
+      "./utils/metis/artifacts/*.json",
     ],
   },
   mocha: {
