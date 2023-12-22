@@ -12,15 +12,20 @@ import {BridgeableTokens} from "../BridgeableTokens.sol";
 import {CrossDomainEnabledMetis} from "./CrossDomainEnabled.sol";
 
 import {OVM_GasPriceOracleMetis} from "./predeploys/OVM_GasPriceOracle.sol";
-import {Lib_PredeployAddresses} from "./libraries/Lib_PredeployAddresses.sol";
 import {Lib_Uint} from "./utils/Lib_Uint.sol";
+
+
 
 /// @notice The L2 token bridge works with the L1 token bridge to enable ERC20 token bridging
 ///     between L1 and L2. It acts as a minter for new tokens when it hears about
 ///     deposits into the L1 token bridge. It also acts as a burner of the tokens
 ///     intended for withdrawal, informing the L1 bridge to release L1 funds. Additionally, adds
 ///     the methods for bridging management: enabling and disabling withdrawals/deposits
-contract L2ERC20TokenBridgeMetis is
+///     
+///     Version 2: it doesn't use Lib_PredeployAddresses for OVM_GASPRICE_ORACLE. It is passed
+///     as a constructor parameter. This is done to facilitate testing and to avoid the need for 
+///     using the whole library for one variable.
+contract L2ERC20TokenBridgeMetis2 is
     IL2ERC20BridgeMetis,
     BridgingManager,
     BridgeableTokens,
@@ -28,6 +33,7 @@ contract L2ERC20TokenBridgeMetis is
 {
     /// @inheritdoc IL2ERC20BridgeMetis
     address public immutable l1TokenBridge;
+    address public immutable ovmGasPriceOracle;
 
     /// @param messenger_ L2 messenger address being used for cross-chain communications
     /// @param l1TokenBridge_  Address of the corresponding L1 bridge
@@ -37,9 +43,11 @@ contract L2ERC20TokenBridgeMetis is
         address messenger_,
         address l1TokenBridge_,
         address l1Token_,
-        address l2Token_
+        address l2Token_,
+        address ovmGasPriceOracle_
     ) CrossDomainEnabledMetis(messenger_) BridgeableTokens(l1Token_, l2Token_) {
         l1TokenBridge = l1TokenBridge_;
+        ovmGasPriceOracle = ovmGasPriceOracle_;
     }
 
     function getChainID() internal view returns (uint256) {
@@ -140,7 +148,7 @@ contract L2ERC20TokenBridgeMetis is
         bytes calldata data_
     ) internal {
         uint256 minL1Gas = OVM_GasPriceOracleMetis(
-            Lib_PredeployAddresses.OVM_GASPRICE_ORACLE
+            ovmGasPriceOracle
         ).minErc20BridgeCost();
 
         // require minimum gas unless, the metis manager is the sender
