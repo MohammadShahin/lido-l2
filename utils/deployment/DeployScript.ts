@@ -167,11 +167,15 @@ export class DeployScript {
     const networkNameByChainId: Record<number, string> = {
       1: "eth_mainnet",
       5: "eth_goerli",
+      17000: "eth_holesky",
       10: "opt_mainnet",
       420: "opt_goerli",
       31337: "hardhat",
       42161: "arb_mainnet",
       421613: "arb_goerli",
+      1088: "mts_mainnet",
+      599: "mts_goerli",
+      59901: "mts_holesky",
     };
     const networkName = networkNameByChainId[chainId] || "<NETWORK_NAME>";
     const arsString = stepInfo.args.map((a) => `"${a.value}"`).join(" ");

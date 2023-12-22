@@ -6,7 +6,7 @@ import { HardhatRuntimeEnvironment, HttpNetworkConfig } from "hardhat/types";
 
 import env from "./env";
 
-type ChainNameShort = "arb" | "opt" | "eth";
+type ChainNameShort = "arb" | "opt" | "eth" | "mts";
 export type NetworkName = "goerli" | "mainnet";
 export type SignerOrProvider = Signer | Provider;
 
@@ -14,14 +14,22 @@ const HARDHAT_NETWORK_NAMES = {
   eth: {
     goerli: "eth_goerli",
     mainnet: "eth_mainnet",
+    holesky: "eth_holesky",
   },
   arb: {
     goerli: "arb_goerli",
     mainnet: "arb_mainnet",
+    holesky: "NOT_DEPLOYED",
   },
   opt: {
     goerli: "opt_goerli",
     mainnet: "opt_mainnet",
+    holesky: "NOT_DEPLOYED",
+  },
+  mts: {
+    goerli: "mts_goerli",
+    mainnet: "mts_mainnet",
+    holesky: "mts_holesky",
   },
 };
 
@@ -29,14 +37,22 @@ const HARDHAT_NETWORK_NAMES_FORK = {
   eth: {
     goerli: "eth_goerli_fork",
     mainnet: "eth_mainnet_fork",
+    holesky: "eth_holesky_fork",
   },
   arb: {
     goerli: "arb_goerli_fork",
     mainnet: "arb_mainnet_fork",
+    holesky: "NOT_DEPLOYED",
   },
   opt: {
     goerli: "opt_goerli_fork",
     mainnet: "opt_mainnet_fork",
+    holesky: "NOT_DEPLOYED",
+  },
+  mts: {
+    goerli: "mts_goerli_fork",
+    mainnet: "mts_mainnet_fork",
+    holesky: "mts_holesky_fork",
   },
 };
 
@@ -120,19 +136,27 @@ function getChainId(protocol: ChainNameShort, networkName: NetworkName) {
     eth: {
       mainnet: 1,
       goerli: 5,
+      holesky: 17000,
     },
     opt: {
       mainnet: 10,
       goerli: 420,
+      holesky: null,
     },
     arb: {
       mainnet: 42161,
       goerli: 421613,
+      holesky: null,
+    },
+    mts: {
+      mainnet: 1088,
+      holesky: 59901,
+      goerli: 599,
     },
   };
   const chainId = chainIds[protocol][networkName];
   if (!chainId) {
-    throw new Error(`Network for ${protocol} ${networkName} doesn't declared`);
+    throw new Error(`Network for ${protocol} ${networkName} isn't declared`);
   }
   return chainId;
 }
@@ -142,12 +166,17 @@ function getBlockExplorerBaseUrlByChainId(chainId: number) {
     // ethereum
     1: "https://etherscan.io",
     5: "https://goerli.etherscan.io",
+    17000: "https://holesky.etherscan.io",
     // arbitrum
     42161: "https://arbiscan.io",
     421613: "https://goerli-rollup-explorer.arbitrum.io",
     // optimism
     10: "https://optimistic.etherscan.io",
     420: "https://blockscout.com/optimism/goerli",
+    // metis
+    1088: "https://andromeda-explorer.metis.io/",
+    599: "https://goerli.explorer.metisdevops.link/",
+    59901: "https://holesky.explorer.metisdevops.link/",
     // forked node
     31337: "https://etherscan.io",
   };
