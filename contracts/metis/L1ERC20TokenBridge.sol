@@ -7,35 +7,35 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {IL1ERC20Bridge} from "./interfaces/IL1ERC20Bridge.sol";
-import {IL2ERC20Bridge} from "./interfaces/IL2ERC20Bridge.sol";
-import {iMVM_DiscountOracle} from "./interfaces/iMVM_DiscountOracle.sol";
+import {IL1ERC20BridgeMetis} from "./interfaces/IL1ERC20Bridge.sol";
+import {IL2ERC20BridgeMetis} from "./interfaces/IL2ERC20Bridge.sol";
+import {iMVM_DiscountOracleMetis} from "./interfaces/iMVM_DiscountOracle.sol";
 
 import {BridgingManager} from "../BridgingManager.sol";
 import {BridgeableTokens} from "../BridgeableTokens.sol";
-import {CrossDomainEnabled} from "./CrossDomainEnabled.sol";
+import {CrossDomainEnabledMetis} from "./CrossDomainEnabled.sol";
 
-import {Lib_AddressManager} from "./resolver/Lib_AddressManager.sol";
+import {Lib_AddressManagerMetis} from "./resolver/Lib_AddressManager.sol";
 
 import {Lib_Uint} from "./utils/Lib_Uint.sol";
 
-/// @author psirex
+
 /// @notice The L1 ERC20 token bridge locks bridged tokens on the L1 side, sends deposit messages
 ///     on the L2 side, and finalizes token withdrawals from L2. Additionally, adds the methods for
 ///     bridging management: enabling and disabling withdrawals/deposits
-contract L1ERC20TokenBridge is
-    IL1ERC20Bridge,
+contract L1ERC20TokenBridgeMetis is
+    IL1ERC20BridgeMetis,
     BridgingManager,
     BridgeableTokens,
-    CrossDomainEnabled
+    CrossDomainEnabledMetis
 {
     using SafeERC20 for IERC20;
 
-    /// @inheritdoc IL1ERC20Bridge
+    /// @inheritdoc IL1ERC20BridgeMetis
     address public immutable l2TokenBridge;
-    address public addressmgr;
+    address public immutable addressmgr;
 
-    uint256 public constant DEFAULT_CHAINID = 1088;
+    uint256 public immutable DEFAULT_CHAINID = 1088;
 
     /// @param messenger_ L1 messenger address being used for cross-chain communications
     /// @param l2TokenBridge_ Address of the corresponding L2 bridge
@@ -47,12 +47,12 @@ contract L1ERC20TokenBridge is
         address l1Token_,
         address l2Token_,
         address addressmgr_
-    ) CrossDomainEnabled(messenger_) BridgeableTokens(l1Token_, l2Token_) {
+    ) CrossDomainEnabledMetis(messenger_) BridgeableTokens(l1Token_, l2Token_) {
         l2TokenBridge = l2TokenBridge_;
         addressmgr = addressmgr_;
     }
 
-    /// @inheritdoc IL1ERC20Bridge
+    /// @inheritdoc IL1ERC20BridgeMetis
     function depositERC20(
         address l1Token_,
         address l2Token_,
@@ -78,7 +78,7 @@ contract L1ERC20TokenBridge is
         );
     }
 
-    /// @inheritdoc IL1ERC20Bridge
+    /// @inheritdoc IL1ERC20BridgeMetis
     function depositERC20To(
         address l1Token_,
         address l2Token_,
@@ -103,7 +103,7 @@ contract L1ERC20TokenBridge is
         );
     }
 
-    /// @inheritdoc IL1ERC20Bridge
+    /// @inheritdoc IL1ERC20BridgeMetis
     function depositERC20ByChainId(
         uint256 chainid_,
         address l1Token_,
@@ -131,7 +131,7 @@ contract L1ERC20TokenBridge is
         );
     }
 
-    /// @inheritdoc IL1ERC20Bridge
+    /// @inheritdoc IL1ERC20BridgeMetis
     function depositERC20ToByChainId(
         uint256 chainid_,
         address l1Token_,
@@ -158,7 +158,7 @@ contract L1ERC20TokenBridge is
         );
     }
 
-    /// @inheritdoc IL1ERC20Bridge
+    /// @inheritdoc IL1ERC20BridgeMetis
     function finalizeERC20Withdrawal(
         address l1Token_,
         address l2Token_,
@@ -184,7 +184,7 @@ contract L1ERC20TokenBridge is
         );
     }
 
-    /// @inheritdoc IL1ERC20Bridge
+    /// @inheritdoc IL1ERC20BridgeMetis
     function finalizeERC20WithdrawalByChainId(
         uint256 chainid_,
         address l1Token_,
@@ -246,8 +246,9 @@ contract L1ERC20TokenBridge is
         uint32 l2Gas_,
         bytes calldata data_
     ) internal {
-        iMVM_DiscountOracle oracle = iMVM_DiscountOracle(
-            Lib_AddressManager(addressmgr).getAddress("MVM_DiscountOracle")
+
+        iMVM_DiscountOracleMetis oracle = iMVM_DiscountOracleMetis(
+            Lib_AddressManagerMetis(addressmgr).getAddress("MVM_DiscountOracle")
         );
 
         // stack too deep. so no more local variables
@@ -271,7 +272,7 @@ contract L1ERC20TokenBridge is
         IERC20(l1Token).safeTransferFrom(from_, address(this), amount_);
 
         bytes memory message = abi.encodeWithSelector(
-            IL2ERC20Bridge.finalizeDeposit.selector,
+            IL2ERC20BridgeMetis.finalizeDeposit.selector,
             l1Token,
             l2Token,
             from_,

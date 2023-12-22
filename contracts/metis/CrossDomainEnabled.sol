@@ -3,16 +3,16 @@
 
 pragma solidity 0.8.10;
 
-import {ICrossDomainMessenger} from "./interfaces/ICrossDomainMessenger.sol";
+import {ICrossDomainMessengerMetis} from "./interfaces/ICrossDomainMessenger.sol";
 
 /// @dev Helper contract for contracts performing cross-domain communications
-contract CrossDomainEnabled {
+contract CrossDomainEnabledMetis {
     /// @notice Messenger contract used to send and receive messages from the other domain
-    ICrossDomainMessenger public immutable messenger;
+    ICrossDomainMessengerMetis public immutable messenger;
 
     /// @param messenger_ Address of the CrossDomainMessenger on the current layer
     constructor(address messenger_) {
-        messenger = ICrossDomainMessenger(messenger_);
+        messenger = ICrossDomainMessengerMetis(messenger_);
     }
 
     /// @dev Sends a message to an account on another domain

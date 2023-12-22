@@ -3,31 +3,30 @@
 
 pragma solidity 0.8.10;
 
-import {IL1ERC20Bridge} from "./interfaces/IL1ERC20Bridge.sol";
-import {IL2ERC20Bridge} from "./interfaces/IL2ERC20Bridge.sol";
+import {IL1ERC20BridgeMetis} from "./interfaces/IL1ERC20Bridge.sol";
+import {IL2ERC20BridgeMetis} from "./interfaces/IL2ERC20Bridge.sol";
 import {IERC20Bridged} from "../token/interfaces/IERC20Bridged.sol";
 
 import {BridgingManager} from "../BridgingManager.sol";
 import {BridgeableTokens} from "../BridgeableTokens.sol";
-import {CrossDomainEnabled} from "./CrossDomainEnabled.sol";
+import {CrossDomainEnabledMetis} from "./CrossDomainEnabled.sol";
 
-import {OVM_GasPriceOracle} from "./predeploys/OVM_GasPriceOracle.sol";
+import {OVM_GasPriceOracleMetis} from "./predeploys/OVM_GasPriceOracle.sol";
 import {Lib_PredeployAddresses} from "./libraries/Lib_PredeployAddresses.sol";
 import {Lib_Uint} from "./utils/Lib_Uint.sol";
 
-/// @author psirex
 /// @notice The L2 token bridge works with the L1 token bridge to enable ERC20 token bridging
 ///     between L1 and L2. It acts as a minter for new tokens when it hears about
 ///     deposits into the L1 token bridge. It also acts as a burner of the tokens
 ///     intended for withdrawal, informing the L1 bridge to release L1 funds. Additionally, adds
 ///     the methods for bridging management: enabling and disabling withdrawals/deposits
-contract L2ERC20TokenBridge is
-    IL2ERC20Bridge,
+contract L2ERC20TokenBridgeMetis is
+    IL2ERC20BridgeMetis,
     BridgingManager,
     BridgeableTokens,
-    CrossDomainEnabled
+    CrossDomainEnabledMetis
 {
-    /// @inheritdoc IL2ERC20Bridge
+    /// @inheritdoc IL2ERC20BridgeMetis
     address public immutable l1TokenBridge;
 
     /// @param messenger_ L2 messenger address being used for cross-chain communications
@@ -39,7 +38,7 @@ contract L2ERC20TokenBridge is
         address l1TokenBridge_,
         address l1Token_,
         address l2Token_
-    ) CrossDomainEnabled(messenger_) BridgeableTokens(l1Token_, l2Token_) {
+    ) CrossDomainEnabledMetis(messenger_) BridgeableTokens(l1Token_, l2Token_) {
         l1TokenBridge = l1TokenBridge_;
     }
 
@@ -51,7 +50,7 @@ contract L2ERC20TokenBridge is
         return id;
     }
 
-    /// @inheritdoc IL2ERC20Bridge
+    /// @inheritdoc IL2ERC20BridgeMetis
     function withdraw(
         address l2Token_,
         uint256 amount_,
@@ -69,7 +68,7 @@ contract L2ERC20TokenBridge is
         revert ErrorNotImplemented();
     }
 
-    /// @inheritdoc IL2ERC20Bridge
+    /// @inheritdoc IL2ERC20BridgeMetis
     function withdrawTo(
         address l2Token_,
         address to_,
@@ -89,7 +88,7 @@ contract L2ERC20TokenBridge is
         revert ErrorNotImplemented();
     }
 
-    /// @inheritdoc IL2ERC20Bridge
+    /// @inheritdoc IL2ERC20BridgeMetis
     function finalizeDeposit(
         address l1Token_,
         address l2Token_,
@@ -140,7 +139,7 @@ contract L2ERC20TokenBridge is
         uint32 l1Gas_,
         bytes calldata data_
     ) internal {
-        uint256 minL1Gas = OVM_GasPriceOracle(
+        uint256 minL1Gas = OVM_GasPriceOracleMetis(
             Lib_PredeployAddresses.OVM_GASPRICE_ORACLE
         ).minErc20BridgeCost();
 
@@ -156,13 +155,15 @@ contract L2ERC20TokenBridge is
             )
         );
 
+        // console.log("3 %s ", from_);
+
         // When a withdrawal is initiated, we burn the withdrawer's funds to prevent subsequent L2
         // usage
         IERC20Bridged(l2Token).bridgeBurn(from_, amount_);
 
-        // Construct calldata for l1TokenBridge.finalizeERC20Withdrawal(to_, amount_)
+        // Construct calldata for l1TokenBridge.finalizeERC20WithdrawalByChainId(to_, amount_)
         bytes memory message = abi.encodeWithSelector(
-            IL1ERC20Bridge.finalizeERC20WithdrawalByChainId.selector,
+            IL1ERC20BridgeMetis.finalizeERC20WithdrawalByChainId.selector,
             getChainID(),
             l1Token,
             l2Token,

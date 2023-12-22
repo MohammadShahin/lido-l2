@@ -3,11 +3,11 @@ pragma solidity ^0.8.9;
 
 /* External Imports */
 
-import { iOVM_SequencerFeeVault } from "./iOVM_SequencerFeeVault.sol";
+import { iOVM_SequencerFeeVaultMetis } from "./iOVM_SequencerFeeVault.sol";
 import { Lib_PredeployAddresses } from "../libraries/Lib_PredeployAddresses.sol";
 
 /**
- * @title OVM_GasPriceOracle
+ * @title OVM_GasPriceOracleMetis
  * @dev This contract exposes the current l2 gas price, a measure of how congested the network
  * currently is. This measure is used by the Sequencer to determine what fee to charge for
  * transactions. When the system is more congested, the l2 gas price will increase and fees
@@ -17,7 +17,7 @@ import { Lib_PredeployAddresses } from "../libraries/Lib_PredeployAddresses.sol"
  * constructor doesn't run in practice as the L2 state generation script uses
  * the deployed bytecode instead of running the initcode.
  */
-contract OVM_GasPriceOracle {
+contract OVM_GasPriceOracleMetis {
     /*************
      * Variables *
      *************/
@@ -50,7 +50,7 @@ contract OVM_GasPriceOracle {
     }
     
     modifier onlyManager() {
-        require(msg.sender == iOVM_SequencerFeeVault(Lib_PredeployAddresses.SEQUENCER_FEE_WALLET).getL2Manager(),
+        require(msg.sender == iOVM_SequencerFeeVaultMetis(Lib_PredeployAddresses.SEQUENCER_FEE_WALLET).getL2Manager(),
                 "Function can only be called by the l2manager.");
         _;
     }

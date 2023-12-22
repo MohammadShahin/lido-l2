@@ -2,11 +2,11 @@
 pragma solidity ^0.8.9;
 
 /**
- * @title OVM_SequencerFeeVault
+ * @title iOVM_SequencerFeeVaultMetis
  * @dev Simple holding contract for fees paid to the Sequencer. Likely to be replaced in the future
  * but "good enough for now".
  */
-interface iOVM_SequencerFeeVault {
+interface iOVM_SequencerFeeVaultMetis {
     /*************
      * Constants *
      *************/

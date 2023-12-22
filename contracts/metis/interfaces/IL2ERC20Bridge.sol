@@ -2,9 +2,9 @@
 pragma solidity ^0.8.9;
 
 /**
- * @title IL2ERC20Bridge
+ * @title IL2ERC20BridgeMetis
  */
-interface IL2ERC20Bridge {
+interface IL2ERC20BridgeMetis {
     /**********
      * Events *
      **********/

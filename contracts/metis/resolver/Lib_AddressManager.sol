@@ -5,9 +5,9 @@ pragma solidity ^0.8.9;
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title Lib_AddressManager
+ * @title Lib_AddressManagerMetis
  */
-contract Lib_AddressManager is Ownable {
+contract Lib_AddressManagerMetis is Ownable {
     /**********
      * Events *
      **********/

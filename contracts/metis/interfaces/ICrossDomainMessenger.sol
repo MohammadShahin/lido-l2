@@ -2,9 +2,9 @@
 pragma solidity >0.5.0 <0.9.0;
 
 /**
- * @title ICrossDomainMessenger
+ * @title ICrossDomainMessengerMetis
  */
-interface ICrossDomainMessenger {
+interface ICrossDomainMessengerMetis {
     /**********
      * Events *
      **********/

@@ -3,9 +3,10 @@
 
 pragma solidity 0.8.10;
 
-import {ICrossDomainMessenger} from "../interfaces/ICrossDomainMessenger.sol";
+import {ICrossDomainMessengerMetis} from "../interfaces/ICrossDomainMessenger.sol";
 
-contract CrossDomainMessengerStub is ICrossDomainMessenger {
+
+contract CrossDomainMessengerStubMetis is ICrossDomainMessengerMetis {
     address public xDomainMessageSender;
     uint256 public messageNonce;
 
