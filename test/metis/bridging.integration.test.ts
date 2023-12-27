@@ -4,6 +4,11 @@ import env from "../../utils/env";
 import { wei } from "../../utils/wei";
 import metis from "../../utils/metis";
 import testing, { scenario } from "../../utils/testing";
+import network from "../../utils/network";
+
+// todo solve the chain id issue (it's probably a problem with Metis bridge contracts)
+const networkName = "mainnet";
+const chainId = network.chainId("mts", networkName);
 
 scenario("Metis :: Bridging integration test", ctxFactory)
   .after(async (ctx) => {
@@ -130,6 +135,7 @@ scenario("Metis :: Bridging integration test", ctxFactory)
       l2DepositCalldata,
       messageNonce,
       200_000,
+      chainId,
     ]);
 
     assert.equalBN(
@@ -163,8 +169,8 @@ scenario("Metis :: Bridging integration test", ctxFactory)
     const tx = await l2CrossDomainMessenger
       .connect(l1CrossDomainMessengerAliased)
       .relayMessage(
-        l2Token.address,
-        l1Token.address,
+        l2ERC20TokenBridge.address,
+        l1ERC20TokenBridge.address,
         l2ERC20TokenBridge.interface.encodeFunctionData("finalizeDeposit", [
           l1Token.address,
           l2Token.address,
@@ -226,7 +232,9 @@ scenario("Metis :: Bridging integration test", ctxFactory)
 
     const tx = await l2ERC20TokenBridge
       .connect(tokenHolderA.l2Signer)
-      .withdraw(l2Token.address, withdrawalAmount, 0, "0x");
+      .withdraw(l2Token.address, withdrawalAmount, wei`1 gwei`, "0x", {
+        value: wei.toBigNumber(wei`1 gwei`),
+      });
 
     await assert.emits(l2ERC20TokenBridge, tx, "WithdrawalInitiated", [
       l1Token.address,
@@ -372,6 +380,7 @@ scenario("Metis :: Bridging integration test", ctxFactory)
       l2DepositCalldata,
       messageNonce,
       200_000,
+      chainId,
     ]);
 
     assert.equalBN(
@@ -476,7 +485,10 @@ scenario("Metis :: Bridging integration test", ctxFactory)
         tokenHolderA.address,
         withdrawalAmount,
         0,
-        "0x"
+        "0x",
+        {
+          value: wei.toBigNumber(wei`1 gwei`),
+        }
       );
 
     await assert.emits(l2ERC20TokenBridge, tx, "WithdrawalInitiated", [
