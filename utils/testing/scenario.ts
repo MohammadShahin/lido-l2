@@ -33,10 +33,9 @@ class ScenarioTest<T> {
     const { beforeFn, afterFn } = this;
     for (let i = 0; i < repeat; i++) {
       describe(this.title, function () {
-        // @ts-ignore
-        let ctx: T = {};
+        let ctx: T;
         before(async () => {
-          ctx = Object.assign(ctx, await self.ctxFactory());
+          ctx = Object.assign({}, await self.ctxFactory());
           if (beforeFn) {
             await beforeFn(ctx);
           }

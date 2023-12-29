@@ -33,14 +33,13 @@ class UnitTest<T> {
     const { title, tests, ctxFactory } = this;
 
     describe(title, function () {
-      // @ts-ignore
-      let ctx: T = {};
+      let ctx: T;
 
       let evmSnapshotId: string;
 
       // prepare unit tests
       before(async () => {
-        ctx = Object.assign(ctx, await ctxFactory());
+        ctx = Object.assign({}, await ctxFactory());
         evmSnapshotId = await hre.ethers.provider.send("evm_snapshot", []);
       });
 
