@@ -154,14 +154,14 @@ async function loadDeployedBridges(
 ) {
   return {
     l1Token: IERC20__factory.connect(
-      testingUtils.env.OPT_L1_TOKEN(),
+      testingUtils.env.MTS_L1_TOKEN(),
       l1SignerOrProvider
     ),
     ...connectBridgeContracts(
       {
-        l2Token: testingUtils.env.OPT_L2_TOKEN(),
-        l1ERC20TokenBridge: testingUtils.env.OPT_L1_ERC20_TOKEN_BRIDGE(),
-        l2ERC20TokenBridge: testingUtils.env.OPT_L2_ERC20_TOKEN_BRIDGE(),
+        l2Token: testingUtils.env.MTS_L2_TOKEN(),
+        l1ERC20TokenBridge: testingUtils.env.MTS_L1_ERC20_TOKEN_BRIDGE(),
+        l2ERC20TokenBridge: testingUtils.env.MTS_L2_ERC20_TOKEN_BRIDGE(),
       },
       l1SignerOrProvider,
       l2SignerOrProvider
@@ -277,7 +277,7 @@ async function printLoadedTestConfig(
 ) {
   console.log("Using the deployed contracts for testing");
   console.log(
-    "In case of unexpected fails, please, make sure that you are forking correct Ethereum/Optimism networks"
+    "In case of unexpected fails, please, make sure that you are forking correct Ethereum/Metis networks"
   );
   console.log(`  · Network Name: ${networkName}`);
   console.log(`  · L1 Token: ${bridgeContracts.l1Token.address}`);
