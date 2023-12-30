@@ -3,9 +3,12 @@ import {
   TransactionReceipt,
   TransactionResponse,
 } from "@ethersproject/providers";
-import { Watcher } from "@metis.io/core-utils";
+import { providers } from "ethers";
+import { Watcher, sleep } from "@metis.io/core-utils";
+import { getMessagesAndProofsForL2Transaction } from "@eth-optimism/message-relayer";
 
 import { Contract, Transaction } from "ethers";
+import { L1CrossDomainMessengerMetis, L2CrossDomainMessengerMetis } from "../../typechain";
 
 export const initWatcher = async (
   l1Provider: JsonRpcProvider,
@@ -58,7 +61,6 @@ export const waitForXDomainTransaction = async (
   const receipt = await tx.wait();
   const fullTx = await src.provider.getTransaction(tx.hash);
 
-
   // get the message hash which was created on the SentMessage
   const [xDomainMsgHash] = await watcher.getMessageHashesFromTx(src, tx.hash);
   // Get the transaction and receipt on the remote layer
@@ -76,4 +78,67 @@ export const waitForXDomainTransaction = async (
     remoteTx,
     remoteReceipt,
   };
+};
+
+/**
+ * Relays all L2 => L1 messages found in a given L2 transaction.
+ *
+ * @param tx Transaction to find messages in.
+ */
+export const relayXDomainMessages = async (
+  tx: Promise<TransactionResponse> | TransactionResponse,
+  l1Provider: providers.JsonRpcProvider,
+  l2Provider: providers.JsonRpcProvider,
+  l1CrossDomainMessenger: L1CrossDomainMessengerMetis,
+  l2CrossDomainMessenger: L2CrossDomainMessengerMetis,
+  stateCommitmentChain: Contract // todo: replace Contract with StateCommitmentChain
+): Promise<void> => {
+  tx = await tx;
+
+  let messagePairs = [];
+  while (true) {
+    try {
+      messagePairs = await getMessagesAndProofsForL2Transaction(
+        l1Provider,
+        l2Provider,
+        stateCommitmentChain.address,
+        l2CrossDomainMessenger.address,
+        tx.hash
+      );
+      break;
+    } catch (err: any) {
+      if (err.message.includes("unable to find state root batch for tx")) {
+        await sleep(5000);
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  for (const { message, proof } of messagePairs) {
+    while (true) {
+      try {
+        const result = await l1CrossDomainMessenger.relayMessage(
+          message.target,
+          message.sender,
+          message.message,
+          message.messageNonce,
+          proof
+        );
+        await result.wait();
+        
+        break;
+      } catch (err: any) {
+        if (err.message.includes("execution failed due to an exception")) {
+          await sleep(5000);
+        } else if (err.message.includes("Nonce too low")) {
+          await sleep(5000);
+        } else if (err.message.includes("message has already been received")) {
+          break;
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
 };
