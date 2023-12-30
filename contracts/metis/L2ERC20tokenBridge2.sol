@@ -179,8 +179,7 @@ contract L2ERC20TokenBridgeMetis2 is
         );
 
         // Send message up to L1 bridge
-        sendCrossDomainMessageViaChainId(
-            getChainID(),
+        sendCrossDomainMessage(
             l1TokenBridge,
             l1Gas_,
             message,
