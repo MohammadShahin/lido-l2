@@ -8,7 +8,19 @@ Our aim is to build the same functionality for Metis taking into account the dif
 
 We use the same approach such that instead of using Metis StandardBridge, we develop a bridge for Lido using `IL1ERC20Bridge` and `IL2ERC20Bridge` interfaces.
 
-## Metis Lido Bridge flow:
+## Metis bridge flow:
+
+The default implementation of the Metis bridging solution consists of two parts: `L1StandardBridge` and `L2StandardBridge`. These contracts allow bridging the ERC20 tokens between Ethereum and Metis chains.
+
+In the standard bridge, when ERC20 is deposited on L1 and transferred to the bridge contract it remains "locked" there while the equivalent amount is minted in the L2 token. For withdrawals, the opposite happens the L2 token amount is burned then the same amount of L1 tokens is transferred to the recipient.
+
+The default Metis bridge is suitable for the short-term goal of the Lido (bridging of the wstETH token into Metis), but it complicates the achievement of the long-term goals. For example, implementation of the staking from L2's very likely will require extending the token and gateway implementations.
+
+Additionally, Metis provides functionality to implement the custom bridge solution utilizing the same cross-domain infrastructure as the Standard bridge. The only constraint for the custom bridge to be compatible with the default Metis Gateway is the implementation of the `IL1ERC20Bridge` and `IL2ERC20Bridge` interfaces.
+
+The rest of the document provides a technical specification of the bridge Lido will use to transfer tokens between Ethereum and Metis chains.
+
+## Lido Bridge flow:
 
 This part presents an overview of the solution suggested by Lido. The description below is taken as is from the [link](https://github.com/lidofinance/lido-l2/tree/main/contracts/optimism).
 
@@ -92,8 +104,7 @@ Metis has added payable in the initiate withdrawal method, which can collect met
 #### L1ERC20TokenBridge
 
 The function `_initiateERC20DepositByChainId` requires having a minimum gas retrieved from the oracle. It also supports discounts. The
-function acts differently if the L1 token is Metis or not (this is to handle Metis being ERC20 on both Ethereum and Metis).
-
+function acts differently if the L1 token is Metis or not (this is to handle Metis which is an ERC20 token on both Ethereum and Metis).
 
 #### IL2ERC20Bridge
 
@@ -123,14 +134,14 @@ The function `_initiateWithdrawal` requires minimum L1 gas. The function acts di
 1. The function `sendMessage` is payable in Metis but it's nonpayable in Optimism.
 
 ## Optimism-Metis integration
-In this part we present how we address the changes between the two networks. Simply put, for the additional functions, we grab the implementation provided by Metis in the [MVM repository](https://github.com/MetisProtocol/mvm/tree/develop/packages/contracts/contracts).
-For existing functions changes, the signature of functions stay the same, we transfrom nonpayable funcitons to payable.
+In this part addresses the changes between the two networks. Simply put, for the additional functions, we grab the implementation provided by Metis in the [MVM repository](https://github.com/MetisProtocol/mvm/tree/develop/packages/contracts/contracts).
+For existing functions changes, chain id is added to the parameters when needed and we transfrom nonpayable funcitons to payable.
 
 We can as well drop the implementation of the additional functions that incorporate the chain id as a parameter. For Lido usecase, the 
 bridging will happen between Ethereum and Metis. However, we decided to implement them as part of future integration. 
 
 **Metis token functionality dropped:**
-- In Metis' `L1StandardBridge` contract, we have the function `_initiateERC20DepositByChainId`. The function encodes the message differntly based on whether the L1 token is Metis or not. We removed this part in the Lido bridge, as the bridge is not supposed to handle Metis tokens. This saves gas as well. 
+- In Metis' `L1StandardBridge` contract, the function `_initiateERC20DepositByChainId` encodes the message differntly based on whether the L1 token is Metis or not. We removed this part in the Lido bridge, as the bridge is not supposed to handle Metis tokens. This saves gas as well. 
 
 - The funciton `finalizeMetisWithdrawalByChainId` in `L1ERC20TokenBridge` was not implemented. Calling this function will revert with `ErrorNotImplemented`. 
 
@@ -138,3 +149,45 @@ bridging will happen between Ethereum and Metis. However, we decided to implemen
 
 - The function `finalizeDeposit` in `L2ERC20TokenBridge`, we don't verify the deposited token on L1 matches the L2 deposited token representation. This is done in `L2StandardBridge` in Metis.
 
+## Tests
+
+There are three types of tests:
+
+### Unit tests:
+
+```
+npm run metis:test:unit
+```
+
+### Integration  tests:
+
+```
+npm run metis:test:integration
+```
+
+### E2E tests:
+
+```
+npm run metis:test:e2e
+```
+
+## Questionnaire
+
+
+| Recommendation                               | Is satisfied?    | Comment |
+| -------------------------------------------- | ---------------- | ------- |
+| Has wstETH been bridged?                     |Not yet||
+| If bridged, how much adoption token has got? |-|-|
+| R-1: Audited code and verifiable deployment  | Not yet ||
+| R-2: Lock-and-mint bridge mechanics          | Yes ||
+| R-3: Usage of canonical bridge               | Yes |         |
+| R-4: L2 wstETH token upgradable              | Yes |         |
+| R-5: Bridging L1 Lido DAO decisions          | Not yet ||
+| R-6: Dedicated upgradable bridge instances   | Yes ||
+| R-7: Pausable deposits and withdrawals       | Yes | Deposits/withdrawals disabler role will be granted to Emergancy Brakes multi-sigs on both networks. |
+| R-8: ERC-2612 permit enhanced with EIP-1271  | No |         |
+| R-9: Token/bridge state before snapshot vote | yes/no/partially |         |
+| R-10: Upgradability mechanics                | Yes |         |
+| R-11: Use AccessControlEnumerable for ACL    | No |         |
+| R-12: Share the deploy artifacts             | TBD |         |
+| R-13: No same contract addresses             | TBD           |         |
