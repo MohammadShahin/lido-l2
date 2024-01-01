@@ -3,7 +3,7 @@ import {
   ERC20BridgedStub__factory,
   L2ERC20TokenBridge__factory,
   OssifiableProxy__factory,
-  MetisBridgeExecutor__factory,
+  OptimismBridgeExecutor__factory,
   ERC20Bridged__factory,
 } from "../../typechain";
 import { wei } from "../../utils/wei";
@@ -209,11 +209,11 @@ async function ctxFactory() {
   const mtsAddresses = metis.addresses(networkName);
 
   const govBridgeExecutor = testingOnDeployedContracts
-    ? MetisBridgeExecutor__factory.connect(
+    ? OptimismBridgeExecutor__factory.connect(
         testing.env.MTS_GOV_BRIDGE_EXECUTOR(),
         l2Provider
       )
-    : await new MetisBridgeExecutor__factory(l2Deployer).deploy(
+    : await new OptimismBridgeExecutor__factory(l2Deployer).deploy(
         mtsAddresses.L2CrossDomainMessenger,
         l1Deployer.address,
         ...getBridgeExecutorParams(),
