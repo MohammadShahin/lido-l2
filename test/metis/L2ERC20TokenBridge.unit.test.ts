@@ -113,7 +113,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l1Gas,
-      defaultChainId
+      defaultChainId,
     ]);
 
     assert.equalBN(
@@ -220,7 +220,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l1Gas,
-      defaultChainId
+      defaultChainId,
     ]);
 
     assert.equalBN(
@@ -393,6 +393,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
 async function ctxFactory() {
   const [deployer, stranger, recipient, l1TokenBridgeEOA] =
     await hre.ethers.getSigners();
+  const provider = hre.ethers.provider;
 
   const l2Messenger = await new CrossDomainMessengerStubMetis__factory(
     deployer
@@ -420,14 +421,24 @@ async function ctxFactory() {
     deployer
   ).deploy(deployer.address);
 
-  const l2TokenBridgeImpl = await new L2ERC20TokenBridgeMetis2__factory(
+  const ovmGasPriceOracleStubCode = await provider.send("eth_getCode", [
+    ovmGasPriceOracleStub.address,
+  ]);
+
+  const ovmGasPriceOracleAddress = "0x420000000000000000000000000000000000000F";
+
+  await provider.send("hardhat_setCode", [
+    ovmGasPriceOracleAddress,
+    ovmGasPriceOracleStubCode,
+  ]);
+
+  const l2TokenBridgeImpl = await new L2ERC20TokenBridgeMetis__factory(
     deployer
   ).deploy(
     l2Messenger.address,
     l1TokenBridgeEOA.address,
     l1Token.address,
-    l2Token.address,
-    ovmGasPriceOracleStub.address
+    l2Token.address
   );
 
   const l2TokenBridgeProxy = await new OssifiableProxy__factory(
@@ -440,7 +451,7 @@ async function ctxFactory() {
     ])
   );
 
-  const l2TokenBridge = L2ERC20TokenBridgeMetis2__factory.connect(
+  const l2TokenBridge = L2ERC20TokenBridgeMetis__factory.connect(
     l2TokenBridgeProxy.address,
     deployer
   );
