@@ -120,8 +120,11 @@ export default function testing(networkName: NetworkName) {
 
       const bridgeContracts = await loadDeployedBridges(l1Tester, l2Tester);
 
-      const { L1CrossDomainMessenger, L2CrossDomainMessenger, LibAddressManagerMetis } =
-        contracts(networkName, { forking: false });
+      const {
+        L1CrossDomainMessenger,
+        L2CrossDomainMessenger,
+        LibAddressManagerMetis,
+      } = contracts(networkName, { forking: false });
 
       const l1CrossDomainMessenger = L1CrossDomainMessenger.connect(l1Tester);
       const l2CrossDomainMessenger = L2CrossDomainMessenger.connect(l2Tester);

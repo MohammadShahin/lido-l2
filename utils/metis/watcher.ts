@@ -3,12 +3,14 @@ import {
   TransactionReceipt,
   TransactionResponse,
 } from "@ethersproject/providers";
-import { providers } from "ethers";
 import { Watcher, sleep } from "@metis.io/core-utils";
 import { getMessagesAndProofsForL2Transaction } from "@eth-optimism/message-relayer";
 
-import { Contract, Transaction } from "ethers";
-import { L1CrossDomainMessengerMetis, L2CrossDomainMessengerMetis } from "../../typechain";
+import { Contract, Transaction, providers } from "ethers";
+import {
+  L1CrossDomainMessengerMetis,
+  L2CrossDomainMessengerMetis,
+} from "../../typechain";
 
 export const initWatcher = async (
   l1Provider: JsonRpcProvider,
@@ -126,7 +128,6 @@ export const relayXDomainMessages = async (
           proof
         );
         await result.wait();
-        
         break;
       } catch (err: any) {
         if (err.message.includes("execution failed due to an exception")) {
