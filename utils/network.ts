@@ -7,7 +7,7 @@ import { HardhatRuntimeEnvironment, HttpNetworkConfig } from "hardhat/types";
 import env from "./env";
 
 type ChainNameShort = "arb" | "opt" | "eth" | "mts";
-export type NetworkName = "goerli" | "mainnet";
+export type NetworkName = "goerli" | "mainnet" | "sepolia";
 export type SignerOrProvider = Signer | Provider;
 
 const HARDHAT_NETWORK_NAMES = {
@@ -15,21 +15,25 @@ const HARDHAT_NETWORK_NAMES = {
     goerli: "eth_goerli",
     mainnet: "eth_mainnet",
     holesky: "eth_holesky",
+    sepolia: "eth_sepolia",
   },
   arb: {
     goerli: "arb_goerli",
     mainnet: "arb_mainnet",
     holesky: "NOT_DEPLOYED",
+    sepolia: "NOT_DEPLOYED",
   },
   opt: {
     goerli: "opt_goerli",
     mainnet: "opt_mainnet",
     holesky: "NOT_DEPLOYED",
+    sepolia: "NOT_DEPLOYED",
   },
   mts: {
     goerli: "mts_goerli",
     mainnet: "mts_mainnet",
-    holesky: "mts_holesky",
+    holesky: "NOT_DEPLOYED",
+    sepolia: "mts_sepolia",
   },
 };
 
@@ -38,21 +42,25 @@ const HARDHAT_NETWORK_NAMES_FORK = {
     goerli: "eth_goerli_fork",
     mainnet: "eth_mainnet_fork",
     holesky: "eth_holesky_fork",
+    sepolia: "eth_sepolia_fork",
   },
   arb: {
     goerli: "arb_goerli_fork",
     mainnet: "arb_mainnet_fork",
     holesky: "NOT_DEPLOYED",
+    sepolia: "NOT_DEPLOYED",
   },
   opt: {
     goerli: "opt_goerli_fork",
     mainnet: "opt_mainnet_fork",
     holesky: "NOT_DEPLOYED",
+    sepolia: "NOT_DEPLOYED",
   },
   mts: {
     goerli: "mts_goerli_fork",
     mainnet: "mts_mainnet_fork",
     holesky: "mts_holesky_fork",
+    sepolia: "mts_sepolia_fork",
   },
 };
 
@@ -137,20 +145,24 @@ function getChainId(protocol: ChainNameShort, networkName: NetworkName) {
       mainnet: 1,
       goerli: 5,
       holesky: 17000,
+      sepolia: 11155111,
     },
     opt: {
       mainnet: 10,
       goerli: 420,
       holesky: null,
+      sepolia: null,
     },
     arb: {
       mainnet: 42161,
       goerli: 421613,
       holesky: null,
+      sepolia: null,
     },
     mts: {
       mainnet: 1088,
-      holesky: 59901,
+      holesky: null,
+      sepolia: 59901,
       goerli: 599,
     },
   };
@@ -176,7 +188,7 @@ function getBlockExplorerBaseUrlByChainId(chainId: number) {
     // metis
     1088: "https://andromeda-explorer.metis.io/",
     599: "https://goerli.explorer.metisdevops.link/",
-    59901: "https://holesky.explorer.metisdevops.link/",
+    59901: "https://sepolia.rpc.metisdevops.link/",
     // forked node
     31337: "https://etherscan.io",
   };

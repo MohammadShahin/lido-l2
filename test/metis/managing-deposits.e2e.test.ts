@@ -63,7 +63,7 @@ const scenarioTest = scenario(
         [false, false],
       ]);
 
-    const mtsAddresses = metis.addresses("goerli");
+    const mtsAddresses = metis.addresses("sepolia");
 
     const { calldata, callvalue } = await ctx.messaging.prepareL2Message({
       sender: ctx.lidoAragonDAO.agent.address,
@@ -138,7 +138,7 @@ scenarioTest.run();
 scenarioTest.run();
 
 async function ctxFactory() {
-  const ethMtsNetwork = network.multichain(["eth", "mts"], "goerli");
+  const ethMtsNetwork = network.multichain(["eth", "mts"], "sepolia");
 
   const [l1Provider] = ethMtsNetwork.getProviders({ forking: false });
   const [l1Tester, l2Tester] = ethMtsNetwork.getSigners(
@@ -152,8 +152,8 @@ async function ctxFactory() {
   );
 
   return {
-    lidoAragonDAO: lido("goerli", l1Provider),
-    messaging: metis.messaging("goerli", { forking: false }),
+    lidoAragonDAO: lido("sepolia", l1Provider),
+    messaging: metis.messaging("sepolia", { forking: false }),
     gasAmount: wei`0.1 ether`,
     l1Tester,
     l2Tester,

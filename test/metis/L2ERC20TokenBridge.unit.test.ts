@@ -3,21 +3,17 @@ import {
   ERC20BridgedStub__factory,
   L1ERC20TokenBridgeMetis__factory,
   L2ERC20TokenBridgeMetis__factory,
-  L2ERC20TokenBridgeMetis2__factory,
   OssifiableProxy__factory,
   EmptyContractStub__factory,
   CrossDomainMessengerStubMetis__factory,
   OVMGasPriceOracleStubMetis__factory,
 } from "../../typechain";
 import testing, { unit } from "../../utils/testing";
-import network from "../../utils/network";
 import { wei } from "../../utils/wei";
 import { assert } from "chai";
 
-const networkName = "goerli";
-const chainId = network.chainId("mts", networkName);
-
-const defaultChainId = 31337;
+const defaultChainId1 = 31337;
+const defaultChainId2 = 1088;
 
 unit("Metis:: L2ERC20TokenBridge", ctxFactory)
   .test("l1TokenBridge()", async (ctx) => {
@@ -102,7 +98,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       L1ERC20TokenBridgeMetis__factory.createInterface().encodeFunctionData(
         "finalizeERC20WithdrawalByChainId",
         [
-          defaultChainId,
+          defaultChainId1,
           l1TokenStub.address,
           l2TokenStub.address,
           deployer.address,
@@ -113,7 +109,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l1Gas,
-      defaultChainId,
+      defaultChainId2,
     ]);
 
     assert.equalBN(
@@ -209,7 +205,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       L1ERC20TokenBridgeMetis__factory.createInterface().encodeFunctionData(
         "finalizeERC20WithdrawalByChainId",
         [
-          defaultChainId,
+          defaultChainId1,
           l1TokenStub.address,
           l2TokenStub.address,
           deployer.address,
@@ -220,7 +216,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l1Gas,
-      defaultChainId,
+      defaultChainId2,
     ]);
 
     assert.equalBN(

@@ -14,7 +14,7 @@ import network from "../../utils/network";
 import testing, { unit } from "../../utils/testing";
 import { wei } from "../../utils/wei";
 
-const networkName = "goerli";
+const networkName = "sepolia";
 const chainId = network.chainId("mts", networkName);
 
 unit("Metis :: L1ERC20TokenBridge", ctxFactory)
@@ -300,7 +300,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l2Gas,
-      chainId
+      chainId,
     ]);
 
     assert.equalBN(

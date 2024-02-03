@@ -12,12 +12,14 @@
     "test:integration": "hardhat test ./test/**/*.integration.test.ts",
     "fork:eth:mainnet": "hardhat node:fork eth_mainnet 8545",
     "fork:eth:goerli": "hardhat node:fork eth_goerli 8545",
+    "fork:eth:sepolia": "hardhat node:fork eth_sepolia 8545",
     "fork:arb:goerli": "hardhat node:fork arb_goerli 8546",
     "fork:arb:mainnet": "hardhat node:fork arb_mainnet 8546",
     "fork:opt:goerli": "hardhat node:fork opt_goerli 9545",
     "fork:opt:mainnet": "hardhat node:fork opt_mainnet 9545",
     "fork:mts:mainnet": "hardhat node:fork mts_mainnet 4000",
     "fork:mts:goerli": "hardhat node:fork mts_goerli 4000",
+    "fork:mts:sepolia": "hardhat node:fork mts_sepolia 4000",
     "arbitrum:deploy": "ts-node --files ./scripts/arbitrum/deploy-gateway.ts",
     "arbitrum:finalize-message": "ts-node --files ./scripts/arbitrum/finalize-message.ts",
     "arbitrum:test:e2e": "hardhat test ./test/arbitrum/*.e2e.test.ts",
@@ -35,6 +37,7 @@
     "optimism:test:executor": "hardhat test ./test/bridge-executor/optimism.integration.test.ts",
     "optimism:test:launch": "REVERT=false hardhat test ./test/optimism/{_launch.test.ts,bridging.integration.test.ts}",
     "metis:deploy": "ts-node --files ./scripts/metis/deploy-bridge.ts",
+    "metis:deploy:permit": "ts-node --files ./scripts/metis/deploy-bridge-permit.ts",
     "metis:finalize-message": "ts-node --files ./scripts/metis/finalize-message.ts",
     "metis:test:e2e": "hardhat test ./test/metis/*.e2e.test.ts",
     "metis:test:unit": "hardhat test ./test/metis/*.unit.test.ts",
@@ -81,12 +84,17 @@
   "dependencies": {
     "@aave/governance-crosschain-bridges": "^1.0.2",
     "@arbitrum/sdk": "3.1.6",
+    "@eth-optimism/contracts": "^0.6.0",
     "@eth-optimism/message-relayer": "^0.1.13",
     "@eth-optimism/sdk": "3.0.0",
     "@ethersproject/providers": "^5.6.8",
     "@lidofinance/evm-script-decoder": "^0.2.2",
+    "@metis.io/contracts": "^1.2.3",
     "@metis.io/core-utils": "^0.6.1",
-    "@openzeppelin/contracts": "4.6.0",
-    "chalk": "4.1.2"
+    "@openzeppelin/contracts": "4.9.2",
+    "@openzeppelin/contracts-upgradeable": "4.9.2",
+    "chalk": "4.1.2",
+    "merkletreejs": "^0.3.11",
+    "rlp": "^3.0.0"
   }
 }

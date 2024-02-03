@@ -46,6 +46,9 @@ const config: HardhatUserConfig = {
     eth_holesky: {
       url: env.string("RPC_ETH_HOLESKY", ""),
     },
+    eth_sepolia: {
+      url: env.string("RPC_ETH_SEPOLIA", ""),
+    },
 
     // Ethereum Fork Chains
     eth_mainnet_fork: {
@@ -55,6 +58,9 @@ const config: HardhatUserConfig = {
       url: "http://localhost:8545",
     },
     eth_holesky_fork: {
+      url: "http://localhost:8545",
+    },
+    eth_sepolia_fork: {
       url: "http://localhost:8545",
     },
 
@@ -100,6 +106,9 @@ const config: HardhatUserConfig = {
     mts_goerli: {
       url: env.string("RPC_MTS_GOERLI", ""),
     },
+    mts_sepolia: {
+      url: env.string("RPC_MTS_SEPOLIA", ""),
+    },
 
     // Metis Fork Chains
     mts_mainnet_fork: {
@@ -109,6 +118,9 @@ const config: HardhatUserConfig = {
       url: "http://localhost:4000",
     },
     mts_goerli_fork: {
+      url: "http://localhost:4000",
+    },
+    mts_sepolia_fork: {
       url: "http://localhost:4000",
     },
   },
@@ -127,6 +139,7 @@ const config: HardhatUserConfig = {
       metisMainnet: env.string("ETHERSCAN_API_KEY_MTS", ""),
       metisHolesky: env.string("ETHERSCAN_API_KEY_MTS", ""),
       metisGoerli: env.string("ETHERSCAN_API_KEY_MTS", ""),
+      metisSepolia: env.string("ETHERSCAN_API_KEY_MTS", ""),
     },
   },
   typechain: {
@@ -138,7 +151,7 @@ const config: HardhatUserConfig = {
     ],
   },
   mocha: {
-    timeout: 20 * 60 * 60 * 1000, // 20 minutes for e2e tests
+    timeout: 70 * 60 * 60 * 1000, // 70 minutes for e2e tests
   },
 };
 

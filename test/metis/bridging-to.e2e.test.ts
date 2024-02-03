@@ -129,7 +129,7 @@ scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
   .run();
 
 async function ctxFactory() {
-  const networkName = env.network("TESTING_MTS_NETWORK", "goerli");
+  const networkName = env.network("TESTING_MTS_NETWORK", "sepolia");
   const { AddressManager, L1CrossDomainMessenger, L2CrossDomainMessenger } =
     metis.addresses(networkName);
   const testingSetup = await metis.testing(networkName).getE2ETestSetup();
