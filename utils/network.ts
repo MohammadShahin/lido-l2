@@ -179,6 +179,7 @@ function getBlockExplorerBaseUrlByChainId(chainId: number) {
     1: "https://etherscan.io",
     5: "https://goerli.etherscan.io",
     17000: "https://holesky.etherscan.io",
+    11155111: "https://sepolia.etherscan.io",
     // arbitrum
     42161: "https://arbiscan.io",
     421613: "https://goerli-rollup-explorer.arbitrum.io",
@@ -186,9 +187,9 @@ function getBlockExplorerBaseUrlByChainId(chainId: number) {
     10: "https://optimistic.etherscan.io",
     420: "https://blockscout.com/optimism/goerli",
     // metis
-    1088: "https://andromeda-explorer.metis.io/",
-    599: "https://goerli.explorer.metisdevops.link/",
-    59901: "https://sepolia.rpc.metisdevops.link/",
+    1088: "https://andromeda-explorer.metis.io",
+    599: "https://goerli.explorer.metisdevops.link",
+    59901: "https://sepolia.explorer.metisdevops.link",
     // forked node
     31337: "https://etherscan.io",
   };

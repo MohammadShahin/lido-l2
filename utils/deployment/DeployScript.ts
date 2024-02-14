@@ -168,6 +168,7 @@ export class DeployScript {
       1: "eth_mainnet",
       5: "eth_goerli",
       17000: "eth_holesky",
+      11155111: "eth_sepolia",
       10: "opt_mainnet",
       420: "opt_goerli",
       31337: "hardhat",
