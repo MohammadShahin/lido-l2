@@ -28,7 +28,7 @@ unit("ERC20Bridged", ctxFactory)
     );
     await assert.revertsWith(
       erc20BridgedImpl.initialize("New Name", ""),
-      "ErrorNameAlreadySet()"
+      "ErrorNameAlreadySet"
     );
   })
 
@@ -44,7 +44,7 @@ unit("ERC20Bridged", ctxFactory)
     );
     await assert.revertsWith(
       erc20BridgedImpl.initialize("", "New Symbol"),
-      "ErrorSymbolAlreadySet()"
+      "ErrorSymbolAlreadySet"
     );
   })
 
@@ -67,13 +67,15 @@ unit("ERC20Bridged", ctxFactory)
 
     // approve tokens
     const tx = await ctx.erc20Bridged.approve(spender.address, amount);
+    await tx.wait();
 
     // validate Approval event was emitted
-    await assert.emits(ctx.erc20Bridged, tx, "Approval", [
-      holder.address,
-      spender.address,
-      amount,
-    ]);
+    await assert.emits(
+      ctx.erc20Bridged,
+      tx,
+      "Approval(address,address,uint256)",
+      [holder.address, spender.address, amount]
+    );
 
     // validate allowance was set
     assert.equalBN(
@@ -88,7 +90,7 @@ unit("ERC20Bridged", ctxFactory)
     } = ctx;
     await assert.revertsWith(
       ctx.erc20Bridged.connect(zero).transfer(recipient.address, wei`1 ether`),
-      "ErrorAccountIsZeroAddress()"
+      "ErrorAccountIsZeroAddress"
     );
   })
 
@@ -96,7 +98,7 @@ unit("ERC20Bridged", ctxFactory)
     const { zero, holder } = ctx.accounts;
     await assert.revertsWith(
       ctx.erc20Bridged.connect(holder).transfer(zero.address, wei`1 ether`),
-      "ErrorAccountIsZeroAddress()"
+      "ErrorAccountIsZeroAddress"
     );
   })
 
@@ -128,7 +130,7 @@ unit("ERC20Bridged", ctxFactory)
     // transfer tokens
     await assert.revertsWith(
       erc20Bridged.connect(holder).transfer(recipient.address, amount),
-      "ErrorNotEnoughBalance()"
+      "ErrorNotEnoughBalance"
     );
   })
 
@@ -302,7 +304,7 @@ unit("ERC20Bridged", ctxFactory)
       erc20Bridged
         .connect(spender)
         .transferFrom(holder.address, recipient.address, amount),
-      "ErrorNotEnoughAllowance()"
+      "ErrorNotEnoughAllowance"
     );
   })
 
@@ -428,7 +430,7 @@ unit("ERC20Bridged", ctxFactory)
       // decrease allowance
       await assert.revertsWith(
         erc20Bridged.decreaseAllowance(spender.address, allowanceDecrease),
-        "ErrorDecreasedAllowanceBelowZero()"
+        "ErrorDecreasedAllowanceBelowZero"
       );
     }
   )
@@ -483,7 +485,7 @@ unit("ERC20Bridged", ctxFactory)
       erc20Bridged
         .connect(stranger)
         .bridgeMint(stranger.address, wei`1000 ether`),
-      "ErrorNotBridge()"
+      "ErrorNotBridge"
     );
   })
 
@@ -532,7 +534,7 @@ unit("ERC20Bridged", ctxFactory)
 
     await assert.revertsWith(
       erc20Bridged.connect(stranger).bridgeBurn(holder.address, wei`100 ether`),
-      "ErrorNotBridge()"
+      "ErrorNotBridge"
     );
   })
 
@@ -545,7 +547,7 @@ unit("ERC20Bridged", ctxFactory)
 
     await assert.revertsWith(
       erc20Bridged.connect(owner).bridgeBurn(stranger.address, wei`100 ether`),
-      "ErrorNotEnoughBalance()"
+      "ErrorNotEnoughBalance"
     );
   })
 
