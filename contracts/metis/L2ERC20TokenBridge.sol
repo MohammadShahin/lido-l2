@@ -103,6 +103,9 @@ contract L2ERC20TokenBridgeMetis is
         onlySupportedL2Token(l2Token_)
         onlyFromCrossDomainAccount(l1TokenBridge)
     {
+        // Theses check were removed because after running the modifiers, the L1 and L2 token
+        // addresses are already checked
+        // 
         // Check the target token is compliant and
         // verify the deposited token on L1 matches the L2 deposited token representation here
         // if (
@@ -171,8 +174,7 @@ contract L2ERC20TokenBridgeMetis is
         );
 
         // Send message up to L1 bridge
-        sendCrossDomainMessageViaChainId(
-            getChainID(),
+        sendCrossDomainMessage(
             l1TokenBridge,
             l1Gas_,
             message,
