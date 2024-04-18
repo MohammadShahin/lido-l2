@@ -40,7 +40,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorWithdrawalsDisabled()"
+      "ErrorWithdrawalsDisabled"
     );
   })
 
@@ -51,7 +51,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
     } = ctx;
     await assert.revertsWith(
       l2TokenBridge.withdraw(stranger.address, wei`1 ether`, wei`1 gwei`, "0x"),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -142,7 +142,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorWithdrawalsDisabled()"
+      "ErrorWithdrawalsDisabled"
     );
   })
 
@@ -159,7 +159,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -252,7 +252,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -274,7 +274,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL1Token()"
+      "ErrorUnsupportedL1Token"
     );
   })
 
@@ -296,7 +296,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -318,7 +318,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnauthorizedMessenger()"
+      "ErrorUnauthorizedMessenger"
     );
   })
 
@@ -342,7 +342,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorWrongCrossDomainSender()"
+      "ErrorWrongCrossDomainSender"
     );
   })
 

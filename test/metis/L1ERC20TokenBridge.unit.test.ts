@@ -45,7 +45,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -58,7 +58,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorUnsupportedL1Token()"
+      "ErrorUnsupportedL1Token"
     );
   })
 
@@ -71,7 +71,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -86,7 +86,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 gwei`,
           "0x"
         ),
-      "ErrorSenderNotEOA()"
+      "ErrorSenderNotEOA"
     );
   })
 
@@ -176,7 +176,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -199,7 +199,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -222,7 +222,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -242,7 +242,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorAccountIsZeroAddress()"
+      "ErrorAccountIsZeroAddress"
     );
   })
 
@@ -337,7 +337,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
             wei`1 ether`,
             "0x"
           ),
-        "ErrorWithdrawalsDisabled()"
+        "ErrorWithdrawalsDisabled"
       );
     }
   )
@@ -360,7 +360,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL1Token()"
+      "ErrorUnsupportedL1Token"
     );
   })
 
@@ -382,7 +382,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -404,7 +404,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnauthorizedMessenger()"
+      "ErrorUnauthorizedMessenger"
     );
   })
 
@@ -430,7 +430,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
             wei`1 ether`,
             "0x"
           ),
-        "ErrorWrongCrossDomainSender()"
+        "ErrorWrongCrossDomainSender"
       );
     }
   )
