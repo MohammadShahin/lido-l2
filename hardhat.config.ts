@@ -6,6 +6,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "@nomiclabs/hardhat-solhint";
 
 import "./tasks/fork-node";
 import env from "./utils/env";
@@ -31,6 +32,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 100_000,
           },
+          evmVersion: "berlin",
         },
       },
     ],

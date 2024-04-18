@@ -6,6 +6,7 @@ import {
   L1ERC20TokenBridgeMetis__factory,
   L2ERC20TokenBridgeMetis__factory,
   OssifiableProxy__factory,
+  ERC20BridgedPermit__factory,
 } from "../../typechain";
 
 import addresses from "./addresses";
@@ -19,7 +20,7 @@ interface MtsL1DeployScriptParams {
 }
 
 interface MtsL2DeployScriptParams extends MtsL1DeployScriptParams {
-  l2Token?: { name?: string; symbol?: string };
+  l2Token?: { name?: string; symbol?: string; isTokenWithPermit?: boolean };
 }
 
 interface MtsDeploymentOptions extends CommonOptions {
@@ -93,12 +94,15 @@ export default function deployment(
         l2Params.l2Token?.symbol ?? l1TokenInfo.symbol(),
       ]);
 
+      const TokenFactory = l2Params.l2Token?.isTokenWithPermit
+        ? ERC20BridgedPermit__factory
+        : ERC20Bridged__factory;
       const l2DeployScript = new DeployScript(
         l2Params.deployer,
         options?.logger
       )
         .addStep({
-          factory: ERC20Bridged__factory,
+          factory: TokenFactory,
           args: [
             l2TokenName,
             l2TokenSymbol,
@@ -114,10 +118,10 @@ export default function deployment(
           args: [
             expectedL2TokenImplAddress,
             l2Params.admins.proxy,
-            ERC20Bridged__factory.createInterface().encodeFunctionData(
-              "initialize",
-              [l2TokenName, l2TokenSymbol]
-            ),
+            TokenFactory.createInterface().encodeFunctionData("initialize", [
+              l2TokenName,
+              l2TokenSymbol,
+            ]),
             options?.overrides,
           ],
           afterDeploy: (c) =>

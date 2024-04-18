@@ -38,6 +38,9 @@ async function main() {
           proxy: deploymentConfig.l2.proxyAdmin,
           bridge: mtsDeployer.address,
         },
+        l2Token: {
+          isTokenWithPermit: true,
+        },
       }
     );
 
