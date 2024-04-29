@@ -1,5 +1,4 @@
-import { Signer } from "ethers";
-import { JsonRpcProvider } from "@ethersproject/providers";
+import { Signer, ethers } from "ethers";
 
 import {
   IERC20,
@@ -185,8 +184,8 @@ async function loadDeployedBridges(
 
 async function deployTestBridge(
   networkName: NetworkName,
-  ethProvider: JsonRpcProvider,
-  mtsProvider: JsonRpcProvider
+  ethProvider: ethers.providers.JsonRpcProvider,
+  mtsProvider: ethers.providers.JsonRpcProvider
 ) {
   const ethDeployer = testingUtils.accounts.deployer(ethProvider);
   const mtsDeployer = testingUtils.accounts.deployer(mtsProvider);

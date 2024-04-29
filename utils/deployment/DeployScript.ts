@@ -176,7 +176,7 @@ export class DeployScript {
       421613: "arb_goerli",
       1088: "mts_mainnet",
       599: "mts_goerli",
-      59901: "mts_sepolia",
+      59902: "mts_sepolia",
     };
     const networkName = networkNameByChainId[chainId] || "<NETWORK_NAME>";
     const arsString = stepInfo.args.map((a) => `"${a.value}"`).join(" ");

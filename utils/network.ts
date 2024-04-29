@@ -162,7 +162,7 @@ function getChainId(protocol: ChainNameShort, networkName: NetworkName) {
     mts: {
       mainnet: 1088,
       holesky: null,
-      sepolia: 59901,
+      sepolia: 59902,
       goerli: 599,
     },
   };
@@ -189,7 +189,7 @@ function getBlockExplorerBaseUrlByChainId(chainId: number) {
     // metis
     1088: "https://andromeda-explorer.metis.io",
     599: "https://goerli.explorer.metisdevops.link",
-    59901: "https://sepolia.explorer.metisdevops.link",
+    59902: "https://sepolia-explorer.metisdevops.link",
     // forked node
     31337: "https://etherscan.io",
   };
