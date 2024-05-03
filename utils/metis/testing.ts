@@ -226,14 +226,22 @@ async function deployTestBridge(
 
   await l1BridgingManagement.setup({
     bridgeAdmin: ethDeployer.address,
-    depositsEnabled: true,
-    withdrawalsEnabled: true,
+    depositsEnabled: false,
+    withdrawalsEnabled: false,
+    depositsEnablers: [ethDeployer.address],
+    withdrawalsEnablers: [ethDeployer.address],
+    depositsDisablers: [ethDeployer.address],
+    withdrawalsDisablers: [ethDeployer.address],
   });
 
   await l2BridgingManagement.setup({
     bridgeAdmin: mtsDeployer.address,
-    depositsEnabled: true,
-    withdrawalsEnabled: true,
+    depositsEnabled: false,
+    withdrawalsEnabled: false,
+    depositsEnablers: [ethDeployer.address],
+    withdrawalsEnablers: [ethDeployer.address],
+    depositsDisablers: [ethDeployer.address],
+    withdrawalsDisablers: [ethDeployer.address],
   });
 
   return {

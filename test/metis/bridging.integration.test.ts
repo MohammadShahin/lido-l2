@@ -5,6 +5,7 @@ import { wei } from "../../utils/wei";
 import metis from "../../utils/metis";
 import testing, { scenario } from "../../utils/testing";
 import network from "../../utils/network";
+import { applyL1ToL2Alias } from "../../utils/metis/core-utils";
 
 // todo solve the chain id issue (it's probably a problem with Metis bridge contracts)
 const networkName = "mainnet";
@@ -624,7 +625,7 @@ async function ctxFactory() {
     .transfer(accountA.l1Signer.address, wei.toBigNumber(depositAmount).mul(2));
 
   const l1CrossDomainMessengerAliased = await testing.impersonate(
-    testing.accounts.applyL1ToL2Alias(contracts.l1CrossDomainMessenger.address),
+    applyL1ToL2Alias(contracts.l1CrossDomainMessenger.address),
     l2Provider
   );
 
