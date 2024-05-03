@@ -4,16 +4,15 @@ import { TransactionResponse } from "@ethersproject/providers";
 import {
   L2ERC20TokenBridgeMetis__factory,
   GovBridgeExecutor__factory,
+  AragonAgentMock__factory,
 } from "../../typechain";
 import {
   E2E_TEST_CONTRACTS_METIS as E2E_TEST_CONTRACTS,
   sleep,
 } from "../../utils/testing/e2e";
 import env from "../../utils/env";
-import { wei } from "../../utils/wei";
 import network from "../../utils/network";
 import { scenario } from "../../utils/testing";
-import lido from "../../utils/lido";
 import metis from "../../utils/metis";
 
 const DEPOSIT_ENABLER_ROLE =
@@ -29,75 +28,58 @@ const scenarioTest = scenario(
   "Metis :: AAVE governance crosschain bridge: token bridge management",
   ctxFactory
 )
-  .step("LDO Holder has enought ETH", async ({ l1LDOHolder, gasAmount }) => {
-    assert.gte(await l1LDOHolder.getBalance(), gasAmount);
-  })
-
   .step("Checking deposits status", async ({ l2ERC20TokenBridge }) => {
     l2DepositsInitialState = await l2ERC20TokenBridge.isDepositsEnabled();
   })
 
-  .step(`Starting DAO vote`, async (ctx) => {
-    const grantRoleCalldata =
-      ctx.l2ERC20TokenBridge.interface.encodeFunctionData("grantRole", [
-        l2DepositsInitialState ? DEPOSIT_DISABLER_ROLE : DEPOSIT_ENABLER_ROLE,
-        ctx.govBridgeExecutor.address,
-      ]);
-    const grantRoleData = "0x" + grantRoleCalldata.substring(10);
+  .step(
+    `Execute (from LidoMock) to enable/disable deposits on queue as task on L2`,
+    async (ctx) => {
+      const grantRoleCalldata =
+        ctx.l2ERC20TokenBridge.interface.encodeFunctionData("grantRole", [
+          l2DepositsInitialState ? DEPOSIT_DISABLER_ROLE : DEPOSIT_ENABLER_ROLE,
+          ctx.govBridgeExecutor.address,
+        ]);
+      const grantRoleData = "0x" + grantRoleCalldata.substring(10);
 
-    const actionCalldata = l2DepositsInitialState
-      ? ctx.l2ERC20TokenBridge.interface.encodeFunctionData("disableDeposits")
-      : ctx.l2ERC20TokenBridge.interface.encodeFunctionData("enableDeposits");
+      const actionCalldata = l2DepositsInitialState
+        ? ctx.l2ERC20TokenBridge.interface.encodeFunctionData("disableDeposits")
+        : ctx.l2ERC20TokenBridge.interface.encodeFunctionData("enableDeposits");
 
-    const actionData = "0x" + actionCalldata.substring(10);
+      const actionData = "0x" + actionCalldata.substring(10);
+      const executorCalldata =
+        ctx.govBridgeExecutor.interface.encodeFunctionData("queue", [
+          [ctx.l2ERC20TokenBridge.address, ctx.l2ERC20TokenBridge.address],
+          [0, 0],
+          [
+            "grantRole(bytes32,address)",
+            l2DepositsInitialState ? "disableDeposits()" : "enableDeposits()",
+          ],
+          [grantRoleData, actionData],
+          [false, false],
+        ]);
+      const { calldata, callvalue } = ctx.messaging.prepareL2Message({
+        sender: ctx.lidoAragonDAOMock.address,
+        recipient: ctx.govBridgeExecutor.address,
+        calldata: executorCalldata,
+      });
 
-    const executorCalldata =
-      await ctx.govBridgeExecutor.interface.encodeFunctionData("queue", [
-        [ctx.l2ERC20TokenBridge.address, ctx.l2ERC20TokenBridge.address],
-        [0, 0],
-        [
-          "grantRole(bytes32,address)",
-          l2DepositsInitialState ? "disableDeposits()" : "enableDeposits()",
-        ],
-        [grantRoleData, actionData],
-        [false, false],
-      ]);
+      const transferTx = await ctx.l1Tester.sendTransaction({
+        to: ctx.lidoAragonDAOMock.address,
+        value: callvalue,
+      });
 
-    const mtsAddresses = metis.addresses("sepolia");
+      await transferTx.wait();
 
-    const { calldata, callvalue } = await ctx.messaging.prepareL2Message({
-      sender: ctx.lidoAragonDAO.agent.address,
-      recipient: ctx.govBridgeExecutor.address,
-      calldata: executorCalldata,
-    });
+      messageTx = await ctx.lidoAragonDAOMock.execute(
+        ctx.mtsAddresses.L1CrossDomainMessenger,
+        callvalue,
+        calldata
+      );
 
-    const tx = await ctx.lidoAragonDAO.createVote(
-      ctx.l1LDOHolder,
-      "E2E Test Voting",
-      {
-        address: ctx.lidoAragonDAO.agent.address,
-        signature: "execute(address,uint256,bytes)",
-        decodedCallData: [
-          mtsAddresses.L1CrossDomainMessenger,
-          callvalue,
-          calldata,
-        ],
-      }
-    );
-
-    await tx.wait();
-  })
-
-  .step("Enacting Vote", async ({ lidoAragonDAO, l1LDOHolder }) => {
-    const votesLength = await lidoAragonDAO.voting.votesLength();
-
-    messageTx = await lidoAragonDAO.voteAndExecute(
-      l1LDOHolder,
-      votesLength.toNumber() - 1
-    );
-
-    await messageTx.wait();
-  })
+      await messageTx.wait();
+    }
+  )
 
   .step("Waiting for status to change to RELAYED", async ({ messaging }) => {
     await messaging.waitForL2Message(messageTx.hash);
@@ -138,26 +120,41 @@ scenarioTest.run();
 scenarioTest.run();
 
 async function ctxFactory() {
-  const ethMtsNetwork = network.multichain(["eth", "mts"], "sepolia");
-
-  const [l1Provider] = ethMtsNetwork.getProviders({ forking: false });
+  const networkName = "sepolia";
+  const ethMtsNetwork = network.multichain(["eth", "mts"], networkName);
+  const mtsContracts = metis.contracts(networkName, { forking: false });
+  const chainId = network.chainId("mts", networkName);
+  const mtsAddresses = metis.addresses(networkName);
+  const { LibAddressManagerMetis } = metis.contracts(networkName, {
+    forking: false,
+  });
   const [l1Tester, l2Tester] = ethMtsNetwork.getSigners(
     env.string("TESTING_PRIVATE_KEY"),
     { forking: false }
   );
+  const lidoAragonDAOMockAddress = env.address(
+    "TESTING_MTS_LIDO_DAO_MOCK",
+    "0x"
+  );
+  const lidoAragonDAOMock = AragonAgentMock__factory.connect(
+    lidoAragonDAOMockAddress,
+    l1Tester
+  );
+  const addressManager = LibAddressManagerMetis.connect(l1Tester);
 
-  const [l1LDOHolder] = ethMtsNetwork.getSigners(
-    env.string("TESTING_MTS_LDO_HOLDER_PRIVATE_KEY"),
-    { forking: false }
+  const l1StandardBridgeAddress = await addressManager.getAddress(
+    "Proxy__OVM_L1StandardBridge"
   );
 
   return {
-    lidoAragonDAO: lido("sepolia", l1Provider),
-    messaging: metis.messaging("sepolia", { forking: false }),
-    gasAmount: wei`0.1 ether`,
+    chainId,
+    lidoAragonDAOMock,
+    mtsAddresses,
+    mtsContracts,
+    l1StandardBridgeAddress,
+    messaging: metis.messaging(networkName, { forking: false }),
     l1Tester,
     l2Tester,
-    l1LDOHolder,
     l2ERC20TokenBridge: L2ERC20TokenBridgeMetis__factory.connect(
       E2E_TEST_CONTRACTS.l2.l2ERC20TokenBridge,
       l2Tester

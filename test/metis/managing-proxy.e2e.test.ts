@@ -6,13 +6,12 @@ import {
   GovBridgeExecutor__factory,
   OssifiableProxy__factory,
   L2ERC20TokenBridgeMetis__factory,
+  AragonAgentMock__factory,
 } from "../../typechain";
 import { E2E_TEST_CONTRACTS_METIS as E2E_TEST_CONTRACTS } from "../../utils/testing/e2e";
 import env from "../../utils/env";
-import { wei } from "../../utils/wei";
 import network from "../../utils/network";
 import { scenario } from "../../utils/testing";
-import lido from "../../utils/lido";
 import metis from "../../utils/metis";
 
 let ossifyMessageResponse: TransactionResponse;
@@ -30,11 +29,12 @@ scenario(
   })
 
   .step("Proxy upgrade: send crosschain message", async (ctx) => {
-    const implBefore = await await ctx.proxyToOssify.proxy__getImplementation();
+    const implBefore = await ctx.proxyToOssify.proxy__getImplementation();
 
     assert.equal(implBefore, ctx.l2ERC20TokenBridge.address);
-    const executorCalldata =
-      await ctx.govBridgeExecutor.interface.encodeFunctionData("queue", [
+    const executorCalldata = ctx.govBridgeExecutor.interface.encodeFunctionData(
+      "queue",
+      [
         [ctx.proxyToOssify.address],
         [0],
         ["proxy__upgradeTo(address)"],
@@ -45,46 +45,30 @@ scenario(
               .substring(10),
         ],
         [false],
-      ]);
+      ]
+    );
 
-    const mtsAddresses = metis.addresses("sepolia");
-
-    const { calldata, callvalue } = await ctx.messaging.prepareL2Message({
-      sender: ctx.lidoAragonDAO.agent.address,
+    const { calldata, callvalue } = ctx.messaging.prepareL2Message({
+      sender: ctx.lidoAragonDAOMock.address,
       recipient: ctx.govBridgeExecutor.address,
       calldata: executorCalldata,
     });
 
-    const tx = await ctx.lidoAragonDAO.createVote(
-      ctx.l1LDOHolder,
-      "E2E Test Voting",
-      {
-        address: ctx.lidoAragonDAO.agent.address,
-        signature: "execute(address,uint256,bytes)",
-        decodedCallData: [
-          mtsAddresses.L1CrossDomainMessenger,
-          callvalue,
-          calldata,
-        ],
-      }
+    const transferTx = await ctx.l1Tester.sendTransaction({
+      to: ctx.lidoAragonDAOMock.address,
+      value: callvalue,
+    });
+
+    await transferTx.wait();
+
+    upgradeMessageResponse = await ctx.lidoAragonDAOMock.execute(
+      ctx.mtsAddresses.L1CrossDomainMessenger,
+      callvalue,
+      calldata
     );
 
-    await tx.wait();
+    await upgradeMessageResponse.wait();
   })
-
-  .step(
-    "Proxy upgrade: Enacting Voting",
-    async ({ lidoAragonDAO, l1LDOHolder }) => {
-      const votesLength = await lidoAragonDAO.voting.votesLength();
-
-      upgradeMessageResponse = await lidoAragonDAO.voteAndExecute(
-        l1LDOHolder,
-        votesLength.toNumber() - 1
-      );
-
-      await upgradeMessageResponse.wait();
-    }
-  )
 
   .step("Proxy upgrade: wait for relay", async ({ messaging }) => {
     await messaging.waitForL2Message(upgradeMessageResponse.hash);
@@ -98,7 +82,7 @@ scenario(
 
       const executeTx = await govBridgeExecutor.execute(taskId);
       await executeTx.wait();
-      const implAfter = await await proxyToOssify.proxy__getImplementation();
+      const implAfter = await proxyToOssify.proxy__getImplementation();
 
       assert(implAfter, l2Token.address);
     }
@@ -109,53 +93,32 @@ scenario(
 
     assert.isFalse(isOssifiedBefore);
 
-    const executorCalldata =
-      await ctx.govBridgeExecutor.interface.encodeFunctionData("queue", [
-        [ctx.proxyToOssify.address],
-        [0],
-        ["proxy__ossify()"],
-        ["0x00"],
-        [false],
-      ]);
+    const executorCalldata = ctx.govBridgeExecutor.interface.encodeFunctionData(
+      "queue",
+      [[ctx.proxyToOssify.address], [0], ["proxy__ossify()"], ["0x00"], [false]]
+    );
 
-    const mtsAddresses = metis.addresses("sepolia");
-
-    const { calldata, callvalue } = await ctx.messaging.prepareL2Message({
-      sender: ctx.lidoAragonDAO.agent.address,
+    const { calldata, callvalue } = ctx.messaging.prepareL2Message({
+      sender: ctx.lidoAragonDAOMock.address,
       recipient: ctx.govBridgeExecutor.address,
       calldata: executorCalldata,
     });
 
-    const tx = await ctx.lidoAragonDAO.createVote(
-      ctx.l1LDOHolder,
-      "E2E Test Voting",
-      {
-        address: ctx.lidoAragonDAO.agent.address,
-        signature: "execute(address,uint256,bytes)",
-        decodedCallData: [
-          mtsAddresses.L1CrossDomainMessenger,
-          callvalue,
-          calldata,
-        ],
-      }
+    const transferTx = await ctx.l1Tester.sendTransaction({
+      to: ctx.lidoAragonDAOMock.address,
+      value: callvalue,
+    });
+
+    await transferTx.wait();
+
+    ossifyMessageResponse = await ctx.lidoAragonDAOMock.execute(
+      ctx.mtsAddresses.L1CrossDomainMessenger,
+      callvalue,
+      calldata
     );
 
-    await tx.wait();
+    await ossifyMessageResponse.wait();
   })
-
-  .step(
-    "Proxy ossify: Enacting Voting",
-    async ({ lidoAragonDAO, l1LDOHolder }) => {
-      const votesLength = await lidoAragonDAO.voting.votesLength();
-
-      ossifyMessageResponse = await lidoAragonDAO.voteAndExecute(
-        l1LDOHolder,
-        votesLength.toNumber() - 1
-      );
-
-      await ossifyMessageResponse.wait();
-    }
-  )
 
   .step("Proxy ossify: wait for relay", async ({ messaging }) => {
     await messaging.waitForL2Message(ossifyMessageResponse.hash);
@@ -180,26 +143,31 @@ scenario(
   .run();
 
 async function ctxFactory() {
-  const ethMtsNetwork = network.multichain(["eth", "mts"], "sepolia");
+  const networkName = "sepolia";
+  const ethMtsNetwork = network.multichain(["eth", "mts"], networkName);
 
-  const [l1Provider] = ethMtsNetwork.getProviders({ forking: false });
   const [l1Tester, l2Tester] = ethMtsNetwork.getSigners(
     env.string("TESTING_PRIVATE_KEY"),
     { forking: false }
   );
 
-  const [l1LDOHolder] = ethMtsNetwork.getSigners(
-    env.string("TESTING_MTS_LDO_HOLDER_PRIVATE_KEY"),
-    { forking: false }
+  const lidoAragonDAOMockAddress = env.address(
+    "TESTING_MTS_LIDO_DAO_MOCK",
+    "0x"
+  );
+  const lidoAragonDAOMock = AragonAgentMock__factory.connect(
+    lidoAragonDAOMockAddress,
+    l1Tester
   );
 
+  const mtsAddresses = metis.addresses(networkName);
+
   return {
-    lidoAragonDAO: lido("sepolia", l1Provider),
-    messaging: metis.messaging("sepolia", { forking: false }),
-    gasAmount: wei`0.1 ether`,
+    lidoAragonDAOMock,
+    messaging: metis.messaging(networkName, { forking: false }),
+    mtsAddresses,
     l1Tester,
     l2Tester,
-    l1LDOHolder,
     l2Token: ERC20Bridged__factory.connect(
       E2E_TEST_CONTRACTS.l2.l2Token,
       l2Tester

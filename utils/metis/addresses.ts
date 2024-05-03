@@ -8,18 +8,11 @@ const MetisMainnetAddresses: MtsContractAddresses = {
   AddressManager: "0x918778e825747a892b17C66fe7D24C618262867d",
 };
 
-// const MetisHoleskyAddresses: MtsContractAddresses = {
-//   L1CrossDomainMessenger: "0x28e40796a3228a59af95021E576A5858ffc3646E",
-//   L2CrossDomainMessenger: "0x4200000000000000000000000000000000000007",
-//   CanonicalTransactionChain: "0xa39a011d1Ef5662BcbCD28f73c2f039bef77a307",
-//   AddressManager: "0x23ac2fEd119dAD4fcE4A7a439440627d31e10F9E",
-// };
-
 const MetisSepoliaAddresses: MtsContractAddresses = {
-  L1CrossDomainMessenger: "0x46fa781883aEC3269C5eff9beD69770404bC68e9",
+  L1CrossDomainMessenger: "0x4542c621eEe9fC533c2e6bd80880C89990EE10cD",
   L2CrossDomainMessenger: "0x4200000000000000000000000000000000000007",
-  CanonicalTransactionChain: "0x9eA62b728e56d5AefC911B5C019CEFc829968833",
-  AddressManager: "0x01Af3B22741408d8fEfEFD82ba80472442975fD8",
+  CanonicalTransactionChain: "0x5435d351e0aCc874579eC67Ba46440ee6AC892b8",
+  AddressManager: "0xa66Fa1eD0f1C1ee300893B4eb5493FeAD9a7e9c3",
 };
 
 const MetisGoerliAddresses: MtsContractAddresses = {
@@ -36,8 +29,6 @@ export default function addresses(
   switch (networkName) {
     case "mainnet":
       return { ...MetisMainnetAddresses, ...options.customAddresses };
-    // case "holesky":
-    //   return { ...MetisHoleskyAddresses, ...options.customAddresses };
     case "sepolia":
       return { ...MetisSepoliaAddresses, ...options.customAddresses };
     case "goerli":

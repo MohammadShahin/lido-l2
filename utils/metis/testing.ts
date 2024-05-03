@@ -26,7 +26,7 @@ export default function testing(networkName: NetworkName) {
   return {
     async getAcceptanceTestSetup() {
       const [ethProvider, mtsProvider] = ethMtsNetworks.getProviders({
-        forking: true,
+        forking: false,
       });
 
       const bridgeContracts = await loadDeployedBridges(

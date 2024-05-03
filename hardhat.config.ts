@@ -7,11 +7,15 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-solhint";
+import "@nomiclabs/hardhat-ganache";
 
 import "./tasks/fork-node";
 import env from "./utils/env";
 
-dotenv.config();
+dotenv.config({
+  path: "./.env",
+  override: true,
+});
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -54,16 +58,16 @@ const config: HardhatUserConfig = {
 
     // Ethereum Fork Chains
     eth_mainnet_fork: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
     },
     eth_goerli_fork: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
     },
     eth_holesky_fork: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
     },
     eth_sepolia_fork: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
     },
 
     // Arbitrum Public Chains
@@ -76,10 +80,10 @@ const config: HardhatUserConfig = {
 
     // Arbitrum Fork Chains
     arb_mainnet_fork: {
-      url: "http://localhost:8546",
+      url: "http://127.0.0.1:8546",
     },
     arb_goerli_fork: {
-      url: "http://localhost:8546",
+      url: "http://127.0.0.1:8546",
     },
 
     // Optimism Public Chains
@@ -92,10 +96,10 @@ const config: HardhatUserConfig = {
 
     // Optimism Fork Chains
     opt_mainnet_fork: {
-      url: "http://localhost:9545",
+      url: "http://127.0.0.1:9545",
     },
     opt_goerli_fork: {
-      url: "http://localhost:9545",
+      url: "http://127.0.0.1:9545",
     },
 
     // Metis Public Chains
@@ -114,16 +118,16 @@ const config: HardhatUserConfig = {
 
     // Metis Fork Chains
     mts_mainnet_fork: {
-      url: "http://localhost:4000",
+      url: "http://127.0.0.1:4000",
     },
     mts_holesky_fork: {
-      url: "http://localhost:4000",
+      url: "http://127.0.0.1:4000",
     },
     mts_goerli_fork: {
-      url: "http://localhost:4000",
+      url: "http://127.0.0.1:4000",
     },
     mts_sepolia_fork: {
-      url: "http://localhost:4000",
+      url: "http://127.0.0.1:4000",
     },
   },
   gasReporter: {
