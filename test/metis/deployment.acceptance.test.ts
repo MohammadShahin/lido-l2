@@ -7,7 +7,7 @@ import { BridgingManagerRole } from "../../utils/bridging-management";
 import deployment from "../../utils/deployment";
 import env from "../../utils/env";
 import metis from "../../utils/metis";
-import { getRoleHolders, scenario } from "../../utils/testing";
+import { getHoldersEnumerable, scenario } from "../../utils/testing";
 import { wei } from "../../utils/wei";
 
 scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
@@ -18,7 +18,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     );
   })
   .step("L1 Bridge :: bridge admin", async (ctx) => {
-    const currentAdmins = await getRoleHolders(
+    const currentAdmins = await getHoldersEnumerable(
       ctx.l1ERC20TokenBridge,
       BridgingManagerRole.DEFAULT_ADMIN_ROLE.hash
     );
@@ -60,7 +60,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     );
   })
   .step("L1 Bridge :: deposits enablers", async (ctx) => {
-    const actualDepositsEnablers = await getRoleHolders(
+    const actualDepositsEnablers = await getHoldersEnumerable(
       ctx.l1ERC20TokenBridge,
       BridgingManagerRole.DEPOSITS_ENABLER_ROLE.hash
     );
@@ -72,7 +72,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     }
   })
   .step("L1 Bridge :: deposits disablers", async (ctx) => {
-    const actualDepositsDisablers = await getRoleHolders(
+    const actualDepositsDisablers = await getHoldersEnumerable(
       ctx.l1ERC20TokenBridge,
       BridgingManagerRole.DEPOSITS_DISABLER_ROLE.hash
     );
@@ -86,7 +86,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     }
   })
   .step("L1 Bridge :: withdrawals enablers", async (ctx) => {
-    const actualWithdrawalsEnablers = await getRoleHolders(
+    const actualWithdrawalsEnablers = await getHoldersEnumerable(
       ctx.l1ERC20TokenBridge,
       BridgingManagerRole.WITHDRAWALS_ENABLER_ROLE.hash
     );
@@ -102,7 +102,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     }
   })
   .step("L1 Bridge :: withdrawals disablers", async (ctx) => {
-    const actualWithdrawalsDisablers = await getRoleHolders(
+    const actualWithdrawalsDisablers = await getHoldersEnumerable(
       ctx.l1ERC20TokenBridge,
       BridgingManagerRole.WITHDRAWALS_DISABLER_ROLE.hash
     );
@@ -127,7 +127,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     );
   })
   .step("L2 Bridge :: bridge admin", async (ctx) => {
-    const currentAdmins = await getRoleHolders(
+    const currentAdmins = await getHoldersEnumerable(
       ctx.l2ERC20TokenBridge,
       BridgingManagerRole.DEFAULT_ADMIN_ROLE.hash
     );
@@ -169,7 +169,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     );
   })
   .step("L2 Bridge :: deposits enablers", async (ctx) => {
-    const actualDepositsEnablers = await getRoleHolders(
+    const actualDepositsEnablers = await getHoldersEnumerable(
       ctx.l2ERC20TokenBridge,
       BridgingManagerRole.DEPOSITS_ENABLER_ROLE.hash
     );
@@ -181,7 +181,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     }
   })
   .step("L2 Bridge :: deposits disablers", async (ctx) => {
-    const actualDepositsDisablers = await getRoleHolders(
+    const actualDepositsDisablers = await getHoldersEnumerable(
       ctx.l2ERC20TokenBridge,
       BridgingManagerRole.DEPOSITS_DISABLER_ROLE.hash
     );
@@ -196,7 +196,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     }
   })
   .step("L2 Bridge :: withdrawals enablers", async (ctx) => {
-    const actualWithdrawalsEnablers = await getRoleHolders(
+    const actualWithdrawalsEnablers = await getHoldersEnumerable(
       ctx.l2ERC20TokenBridge,
       BridgingManagerRole.WITHDRAWALS_ENABLER_ROLE.hash
     );
@@ -212,7 +212,7 @@ scenario("Metis Bridge :: deployment acceptance test", ctxFactory)
     }
   })
   .step("L2 Bridge :: withdrawals disablers", async (ctx) => {
-    const actualWithdrawalsDisablers = await getRoleHolders(
+    const actualWithdrawalsDisablers = await getHoldersEnumerable(
       ctx.l2ERC20TokenBridge,
       BridgingManagerRole.WITHDRAWALS_DISABLER_ROLE.hash
     );

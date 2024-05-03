@@ -11,7 +11,7 @@ import {IL1ERC20BridgeMetis} from "./interfaces/IL1ERC20Bridge.sol";
 import {IL2ERC20BridgeMetis} from "./interfaces/IL2ERC20Bridge.sol";
 import {iMVM_DiscountOracleMetis} from "./interfaces/iMVM_DiscountOracle.sol";
 
-import {BridgingManager} from "../BridgingManager.sol";
+import {BridgingManagerEnumerable} from "../BridgingManagerEnumerable.sol";
 import {BridgeableTokens} from "../BridgeableTokens.sol";
 import {CrossDomainEnabledMetis} from "./CrossDomainEnabled.sol";
 
@@ -25,7 +25,7 @@ import {Lib_Uint} from "./utils/Lib_Uint.sol";
 ///     bridging management: enabling and disabling withdrawals/deposits
 contract L1ERC20TokenBridgeMetis is
     IL1ERC20BridgeMetis,
-    BridgingManager,
+    BridgingManagerEnumerable,
     BridgeableTokens,
     CrossDomainEnabledMetis
 {
@@ -108,7 +108,7 @@ contract L1ERC20TokenBridgeMetis is
         uint256 chainid_,
         address l1Token_,
         address l2Token_,
-        uint amount_,
+        uint256 amount_,
         uint32 l2Gas_,
         bytes calldata data_
     )
@@ -137,7 +137,7 @@ contract L1ERC20TokenBridgeMetis is
         address l1Token_,
         address l2Token_,
         address to_,
-        uint amount_,
+        uint256 amount_,
         uint32 l2Gas_,
         bytes calldata data_
     )
@@ -191,7 +191,7 @@ contract L1ERC20TokenBridgeMetis is
         address l2Token_,
         address from_,
         address to_,
-        uint amount_,
+        uint256 amount_,
         bytes calldata data_
     )
         external

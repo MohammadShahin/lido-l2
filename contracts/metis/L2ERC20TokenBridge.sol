@@ -7,7 +7,7 @@ import {IL1ERC20BridgeMetis} from "./interfaces/IL1ERC20Bridge.sol";
 import {IL2ERC20BridgeMetis} from "./interfaces/IL2ERC20Bridge.sol";
 import {IERC20Bridged} from "../token/interfaces/IERC20Bridged.sol";
 
-import {BridgingManager} from "../BridgingManager.sol";
+import {BridgingManagerEnumerable} from "../BridgingManagerEnumerable.sol";
 import {BridgeableTokens} from "../BridgeableTokens.sol";
 import {CrossDomainEnabledMetis} from "./CrossDomainEnabled.sol";
 
@@ -22,7 +22,7 @@ import {Lib_Uint} from "./utils/Lib_Uint.sol";
 ///     the methods for bridging management: enabling and disabling withdrawals/deposits
 contract L2ERC20TokenBridgeMetis is
     IL2ERC20BridgeMetis,
-    BridgingManager,
+    BridgingManagerEnumerable,
     BridgeableTokens,
     CrossDomainEnabledMetis
 {
