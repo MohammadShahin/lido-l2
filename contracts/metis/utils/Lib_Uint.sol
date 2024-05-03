@@ -11,22 +11,22 @@ library Lib_Uint {
      **********************/
 
     /**
-     * Convert uint to string
-     * @param _i uint value.
+     * Convert uint256 to string
+     * @param _i uint256 value.
      * @return _uintAsString string momery value.
      */
-    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
+    function uint2str(uint256 _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
         }
-        uint j = _i;
-        uint len;
+        uint256 j = _i;
+        uint256 len;
         while (j != 0) {
             len++;
             j /= 10;
         }
         bytes memory bstr = new bytes(len);
-        uint k = len;
+        uint256 k = len;
         while (_i != 0) {
             k = k-1;
             uint8 temp = (48 + uint8(_i - _i / 10 * 10));

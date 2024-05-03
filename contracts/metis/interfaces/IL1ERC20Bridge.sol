@@ -92,7 +92,7 @@ interface IL1ERC20BridgeMetis {
         uint256 _chainid,
         address _l1Token,
         address _l2Token,
-        uint _amount,
+        uint256 _amount,
         uint32 _l2Gas,
         bytes calldata _data
     ) external payable;
@@ -114,7 +114,7 @@ interface IL1ERC20BridgeMetis {
         address _l1Token,
         address _l2Token,
         address _to,
-        uint _amount,
+        uint256 _amount,
         uint32 _l2Gas,
         bytes calldata _data
     ) external payable;
@@ -167,7 +167,7 @@ interface IL1ERC20BridgeMetis {
         address _l2Token,
         address _from,
         address _to,
-        uint _amount,
+        uint256 _amount,
         bytes calldata _data
     ) external;
 
@@ -188,7 +188,7 @@ interface IL1ERC20BridgeMetis {
         uint256 _chainid,
         address _from,
         address _to,
-        uint _amount,
+        uint256 _amount,
         bytes calldata _data
     ) external;
 }
