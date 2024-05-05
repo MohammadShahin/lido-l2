@@ -1,13 +1,12 @@
 import * as dotenv from "dotenv";
 
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-verify";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "@nomiclabs/hardhat-solhint";
-import "@nomiclabs/hardhat-ganache";
 
 import "./tasks/fork-node";
 import env from "./utils/env";
@@ -138,15 +137,24 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: env.string("ETHERSCAN_API_KEY_ETH", ""),
       goerli: env.string("ETHERSCAN_API_KEY_ETH", ""),
+      sepolia: env.string("ETHERSCAN_API_KEY_ETH", ""),
       arbitrumGoerli: env.string("ETHERSCAN_API_KEY_ARB", ""),
       arbitrumOne: env.string("ETHERSCAN_API_KEY_ARB", ""),
       optimisticEthereum: env.string("ETHERSCAN_API_KEY_OPT", ""),
       optimisticGoerli: env.string("ETHERSCAN_API_KEY_OPT", ""),
-      metisMainnet: env.string("ETHERSCAN_API_KEY_MTS", ""),
-      metisHolesky: env.string("ETHERSCAN_API_KEY_MTS", ""),
-      metisGoerli: env.string("ETHERSCAN_API_KEY_MTS", ""),
-      metisSepolia: env.string("ETHERSCAN_API_KEY_MTS", ""),
+      metisMainnet: env.string("BLOCKSCOUT_API_KEY_MTS", ""),
+      metisSepolia: env.string("BLOCKSCOUT_API_KEY_MTS", ""),
     },
+    customChains: [
+      {
+        network: "metisSepolia",
+        chainId: 59902,
+        urls: {
+          apiURL: "https://sepolia-explorer-api.metisdevops.link/api",
+          browserURL: "https://sepolia-explorer.metisdevops.link",
+        },
+      },
+    ],
   },
   typechain: {
     externalArtifacts: [
