@@ -58,7 +58,7 @@ Users can withdraw (transfer WstETH from L2 to L1) using `L2LidoBridge.withdraw`
 
 ## Tests
 
-The tests are similar to the ones for Optimism. Please refer to repo's main readme for details. 
+The tests are similar to the ones for Optimism. Please refer to repo's main readme for details. One important difference is that in managing deposits, executor, and proxy tests, aragon agent aren't used. Instead the tests use a mock contract `AragonAgentMock` which simply executes some action on an a smart contract with some value and calldata using the function `function execute(address _target, uint256 _ethValue, bytes calldata _data)`
 
 ```
 npm run metis:test:unit
@@ -68,7 +68,9 @@ npm run metis:test:executor
 npm run metis:test:launch
 ```
 
-> ℹ️ The time [Metis Sepolia State Commitment Chain](https://sepolia.etherscan.io/address/0x9DCC53737FcB3E86a17CF435ca3c15390D4FC7Ed) takes to submit a new state batch may go up to six hours. The messages can't be relayed without its state being on L1. Thus running `test/metis/bridging.e2e.test` and `test/metis/bridging-to.e2e.test` on Sepolia may take six hours. You can check the status of mainnet State Commitment Chain [here](https://etherscan.io/address/0xA2FaAAC9120c1Ff75814F0c6DdB119496a12eEA6).
+> ℹ️ The time [Metis Sepolia State Commitment Chain](https://sepolia.etherscan.io/address/0x9DCC53737FcB3E86a17CF435ca3c15390D4FC7Ed) takes to submit a new state batch may go up to six hours. The messages can't be relayed without its state being on L1. After the state batch is appended on L1, the message should be outside the fraud proof window to be relayed. This takes one hour on Sepolia and 7 days on mainnet. Thus running the withdrawal (L2 -> L1) flow `test/metis/bridging.e2e.test` and `test/metis/bridging-to.e2e.test` on Sepolia may take seven hours and around 7 days on mainnet. You can check the status of mainnet State Commitment Chain [here](https://etherscan.io/address/0xA2FaAAC9120c1Ff75814F0c6DdB119496a12eEA6). The script `metis:finalize-message` relays an L2 transaction given its hash as an env variable: `TX_HASH`.
+
+> On the other hand, deposit (L1 -> L2) flow takes couple of minutes on both testnet and mainnet.
 
 ## Questionnaire
 
