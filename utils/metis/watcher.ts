@@ -115,18 +115,8 @@ export const getMessagesAndProofs = async (
       break;
     } catch (err: any) {
       if (err.message.includes("unable to find state root batch for tx")) {
-        console.log(`no state root batch for tx yet, trying again in ~50s...`);
-        // send ten transactions to the L2 block so we force the batch submitter to submit a batch to L1
-        const txs = [];
-        for (let i = 0; i < 10; i++) {
-          const tx = await l2Signer.sendTransaction({
-            to: l2Signer.address,
-            value: 0,
-          });
-          txs.push(tx);
-          await sleep(5000);
-        }
-        await Promise.all(txs.map((tx) => tx.wait()));
+        console.log(`no state root batch for tx yet, trying again in 50s...`);
+        await sleep(50000);
       } else {
         throw err;
       }
@@ -226,18 +216,8 @@ export const relayXDomainMessagesWhole = async (
       break;
     } catch (err: any) {
       if (err.message.includes("unable to find state root batch for tx")) {
-        console.log(`no state root batch for tx yet, trying again in ~40s...`);
-        // send ten transactions to the L2 block so we force the batch submitter to submit a batch to L1
-        const txs = [];
-        for (let i = 0; i < 10; i++) {
-          const tx = await l2Signer.sendTransaction({
-            to: l2Signer.address,
-            value: 0,
-          });
-          txs.push(tx);
-          await sleep(4000);
-        }
-        await Promise.all(txs.map((tx) => tx.wait()));
+        console.log(`no state root batch for tx yet, trying again in 50s...`);
+        await sleep(50000);
       } else {
         throw err;
       }
