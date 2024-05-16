@@ -1,24 +1,25 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
-import {ICrossDomainMessengerMetis} from "../../interfaces/ICrossDomainMessenger.sol";
+import {ICrossDomainMessenger} from "../dependencies/optimism/interfaces/ICrossDomainMessenger.sol";
 import {L2BridgeExecutor} from "./L2BridgeExecutor.sol";
 
 /**
- * @title MetisBridgeExecutor
- * @notice Aave Implementation of the Optimism (or Metis) Bridge Executor, able to receive cross-chain transactions from Ethereum
- * @dev Queuing an ActionsSet into this Executor can only be done by the Optimism (or Metis) L2 Cross Domain Messenger and having
+ * @title OptimismBridgeExecutor
+ * @author Aave
+ * @notice Implementation of the Optimism Bridge Executor, able to receive cross-chain transactions from Ethereum
+ * @dev Queuing an ActionsSet into this Executor can only be done by the Optimism L2 Cross Domain Messenger and having
  * the EthereumGovernanceExecutor as xDomainMessageSender
  */
 contract OptimismBridgeExecutor is L2BridgeExecutor {
-  // Address of the L2 Cross Domain Messenger, in charge of redirecting cross-chain transactions in L2
+  // Address of the Optimism L2 Cross Domain Messenger, in charge of redirecting cross-chain transactions in L2
   address public immutable OVM_L2_CROSS_DOMAIN_MESSENGER;
 
   /// @inheritdoc L2BridgeExecutor
   modifier onlyEthereumGovernanceExecutor() override {
     if (
       msg.sender != OVM_L2_CROSS_DOMAIN_MESSENGER ||
-      ICrossDomainMessengerMetis(OVM_L2_CROSS_DOMAIN_MESSENGER).xDomainMessageSender() !=
+      ICrossDomainMessenger(OVM_L2_CROSS_DOMAIN_MESSENGER).xDomainMessageSender() !=
       _ethereumGovernanceExecutor
     ) revert UnauthorizedEthereumExecutor();
     _;
@@ -27,7 +28,7 @@ contract OptimismBridgeExecutor is L2BridgeExecutor {
   /**
    * @dev Constructor
    *
-   * @param ovmL2CrossDomainMessenger The address of L2CrossDomainMessenger
+   * @param ovmL2CrossDomainMessenger The address of the Optimism L2CrossDomainMessenger
    * @param ethereumGovernanceExecutor The address of the EthereumGovernanceExecutor
    * @param delay The delay before which an actions set can be executed
    * @param gracePeriod The time period after a delay during which an actions set can be executed
