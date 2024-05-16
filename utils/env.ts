@@ -61,10 +61,10 @@ function getForking() {
 
 function getBridgeExecutorConfig() {
   return {
-    delay: getString("EXECUTION_DELAY", "172800") as string,
-    gradePeriod: getString("EXECUTION_GRACE_PERIOD", "259200") as string,
-    minDelay: getString("EXECUTION_MIN_DELAY", "28800") as string,
-    maxDelay: getString("EXECUTION_MAX_DELAY", "604800") as string,
+    delay: getString("EXECUTION_DELAY", "0") as string,
+    gradePeriod: getString("EXECUTION_GRACE_PERIOD", "86400") as string,
+    minDelay: getString("EXECUTION_MIN_DELAY", "0") as string,
+    maxDelay: getString("EXECUTION_MAX_DELAY", "1") as string,
     guardian: getAddress("EXECUTION_GUARDIAN"),
     l1ExecutorAddress: getAddress("L1_EXECUTOR_ADDR") as string,
   } as const;
