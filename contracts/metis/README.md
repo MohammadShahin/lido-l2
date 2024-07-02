@@ -60,6 +60,8 @@ Users can withdraw (transfer WstETH from L2 to L1) using `L2LidoBridge.withdraw`
 
 The tests are similar to the ones for Optimism. Please refer to repo's main readme for details. One important difference is that in managing deposits, executor, and proxy tests, aragon agent aren't used. Instead the tests use a mock contract `AragonAgentMock` which simply executes some action on an a smart contract with some value and calldata using the function `function execute(address _target, uint256 _ethValue, bytes calldata _data)`
 
+The env variables that need to be filled for each type of tests/deployment can be found in `.env.wsteth.mts_sepolia` and `.env.wsteth.mts_mainnet`. You can also use the main readme file of the repository. 
+
 ```
 npm run metis:test:unit
 npm run metis:test:integration
