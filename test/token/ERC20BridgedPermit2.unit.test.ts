@@ -2,7 +2,6 @@ import { assert } from "chai";
 import hre from "hardhat";
 import {
   ERC20BridgedPermit__factory,
-  ERC20Bridged__factory,
   OssifiableProxy__factory,
 } from "../../typechain";
 import { unit } from "../../utils/testing";
@@ -21,12 +20,9 @@ unit("ERC20BridgedPermit", ctxFactory)
     const { deployer, owner } = ctx.accounts;
 
     // deploy new implementation
-    const erc20BridgedImpl = await new ERC20Bridged__factory(deployer).deploy(
-      "Name",
-      "",
-      9,
-      owner.address
-    );
+    const erc20BridgedImpl = await new ERC20BridgedPermit__factory(
+      deployer
+    ).deploy("Name", "", 9, owner.address);
     await assert.revertsWith(
       erc20BridgedImpl.initialize("New Name", ""),
       "ErrorNameAlreadySet"
@@ -37,12 +33,9 @@ unit("ERC20BridgedPermit", ctxFactory)
     const { deployer, owner } = ctx.accounts;
 
     // deploy new implementation
-    const erc20BridgedImpl = await new ERC20Bridged__factory(deployer).deploy(
-      "",
-      "Symbol",
-      9,
-      owner.address
-    );
+    const erc20BridgedImpl = await new ERC20BridgedPermit__factory(
+      deployer
+    ).deploy("", "Symbol", 9, owner.address);
     await assert.revertsWith(
       erc20BridgedImpl.initialize("", "New Symbol"),
       "ErrorSymbolAlreadySet"
@@ -604,7 +597,7 @@ async function ctxFactory() {
   const premint = wei`100 ether`;
   const [deployer, owner, recipient, spender, holder, stranger] =
     await hre.ethers.getSigners();
-  const l2TokenImpl = await new ERC20Bridged__factory(deployer).deploy(
+  const l2TokenImpl = await new ERC20BridgedPermit__factory(deployer).deploy(
     name,
     symbol,
     decimals,
