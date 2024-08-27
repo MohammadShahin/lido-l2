@@ -75,7 +75,7 @@ contract L2ERC20TokenBridgeMetis is
         uint256 amount_,
         uint32 l1Gas_,
         bytes calldata data_
-    ) external payable whenWithdrawalsEnabled onlySupportedL2Token(l2Token_) {
+    ) external payable whenWithdrawalsEnabled onlySupportedL2Token(l2Token_) onlyNonZeroAccount(to_) {
         _initiateWithdrawal(msg.sender, to_, amount_, l1Gas_, data_);
     }
 
