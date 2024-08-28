@@ -232,6 +232,7 @@ contract L1ERC20TokenBridgeMetis is
      * @param l2Gas_ Gas limit required to complete the deposit on L2,
      *        it should equal to or large than oracle.getMinL2Gas(),
      *        user should send at least l2Gas_ * oracle.getDiscount().
+     *        oracle.getDiscount returns gas price. At time of writing, it is set to zero and is planned to stay so.
      *        Bridging tokens and coins require paying fees, and there is the defined minimal L2 Gas limit,
      *        which may make the defined by user Gas value increase.
      * @param data_ Optional data to forward to L2. This data is provided
@@ -255,7 +256,8 @@ contract L1ERC20TokenBridgeMetis is
         if (l2Gas_ < uint32(oracle.getMinL2Gas())) {
             l2Gas_ = uint32(oracle.getMinL2Gas());
         }
-
+        // oracle.getDiscount returns gas price. At time of writing, it is set to zero and is planned to stay so.
+        // It may however change.
         require(
             l2Gas_ * oracle.getDiscount() <= msg.value,
             string(
