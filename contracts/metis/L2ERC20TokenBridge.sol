@@ -42,14 +42,6 @@ contract L2ERC20TokenBridgeMetis is
         l1TokenBridge = l1TokenBridge_;
     }
 
-    function getChainID() internal view returns (uint256) {
-        uint256 id;
-        assembly {
-            id := chainid()
-        }
-        return id;
-    }
-
     /// @inheritdoc IL2ERC20BridgeMetis
     function withdraw(
         address l2Token_,
@@ -164,7 +156,7 @@ contract L2ERC20TokenBridgeMetis is
         // Construct calldata for l1TokenBridge.finalizeERC20WithdrawalByChainId(to_, amount_)
         bytes memory message = abi.encodeWithSelector(
             IL1ERC20BridgeMetis.finalizeERC20WithdrawalByChainId.selector,
-            getChainID(),
+            block.chainid,
             l1Token,
             l2Token,
             from_,
