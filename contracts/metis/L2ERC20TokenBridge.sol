@@ -134,17 +134,17 @@ contract L2ERC20TokenBridgeMetis is
         uint32 l1Gas_,
         bytes calldata data_
     ) internal {
-        uint256 minL1Gas = OVM_GasPriceOracleMetis(
+        uint256 minErc20BridgeCost = OVM_GasPriceOracleMetis(
             Lib_PredeployAddresses.OVM_GASPRICE_ORACLE
         ).minErc20BridgeCost();
 
         // require minimum gas unless, the metis manager is the sender
         require(
-            msg.value >= minL1Gas,
+            msg.value >= minErc20BridgeCost,
             string(
                 abi.encodePacked(
                     "insufficient withdrawal fee supplied. need at least ",
-                    Lib_Uint.uint2str(minL1Gas)
+                    Lib_Uint.uint2str(minErc20BridgeCost)
                 )
             )
         );
