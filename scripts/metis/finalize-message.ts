@@ -78,7 +78,7 @@ async function main() {
 
   console.log("5. Done!");
   console.log(
-    `L2 -> L1 message finalized successfully for tx ${txHash} on L1 and ${remoteReceipt.transactionHash} on L2`
+    `L2 -> L1 message finalized successfully for tx ${txHash} on L2 and ${remoteReceipt.transactionHash} on L1`
   );
 }
 
