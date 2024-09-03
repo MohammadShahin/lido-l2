@@ -138,7 +138,7 @@ contract L2ERC20TokenBridgeMetis is
             Lib_PredeployAddresses.OVM_GASPRICE_ORACLE
         ).minErc20BridgeCost();
 
-        // require minimum gas unless, the metis manager is the sender
+        // require minimum gas
         require(
             msg.value >= minErc20BridgeCost,
             string(
