@@ -153,10 +153,9 @@ contract L2ERC20TokenBridgeMetis is
         // usage
         IERC20Bridged(l2Token).bridgeBurn(from_, amount_);
 
-        // Construct calldata for l1TokenBridge.finalizeERC20WithdrawalByChainId(to_, amount_)
+        // Construct calldata for l1TokenBridge.finalizeERC20Withdrawal(to_, amount_)
         bytes memory message = abi.encodeWithSelector(
-            IL1ERC20BridgeMetis.finalizeERC20WithdrawalByChainId.selector,
-            block.chainid,
+            IL1ERC20BridgeMetis.finalizeERC20Withdrawal.selector,
             l1Token,
             l2Token,
             from_,

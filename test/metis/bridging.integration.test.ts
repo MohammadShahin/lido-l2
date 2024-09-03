@@ -8,7 +8,7 @@ import network from "../../utils/network";
 import { applyL1ToL2Alias } from "../../utils/metis/core-utils";
 
 // todo solve the chain id issue (it's probably a problem with Metis bridge contracts)
-const networkName = "mainnet";
+const networkName = "sepolia";
 const chainId = network.chainId("mts", networkName);
 
 scenario("Metis :: Bridging integration test", ctxFactory)

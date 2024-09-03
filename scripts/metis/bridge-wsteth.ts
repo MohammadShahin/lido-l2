@@ -15,7 +15,6 @@ import { wei } from "../../utils/wei";
 
 async function main() {
   const networkName = env.network();
-  const chainIdTo = network.chainId("mts", networkName);
   const [l1Signer, l2Signer] = network
     .multichain(["eth", "mts"], networkName)
     .getSigners(env.privateKey(), { forking: false });
@@ -48,8 +47,7 @@ async function main() {
   );
   console.log(`Depositing (L1 -> L2) ${depositAmount} WSTETH...`);
   const l2Gas = 5000000;
-  const depositTokensTxResponse = await l1TokenBridge.depositERC20ByChainId(
-    chainIdTo,
+  const depositTokensTxResponse = await l1TokenBridge.depositERC20(
     l1WstEthContract.address,
     l2WstEthContract.address,
     depositAmount,

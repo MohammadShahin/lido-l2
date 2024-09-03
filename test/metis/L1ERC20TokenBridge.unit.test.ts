@@ -106,8 +106,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
     const deployerBalanceBefore = await l1Token.balanceOf(deployer.address);
     const bridgeBalanceBefore = await l1Token.balanceOf(l1TokenBridge.address);
 
-    const tx = await l1TokenBridge.depositERC20ByChainId(
-      chainId,
+    const tx = await l1TokenBridge.depositERC20(
       l1Token.address,
       l2Token.address,
       amount,
@@ -262,8 +261,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
     const deployerBalanceBefore = await l1Token.balanceOf(deployer.address);
     const bridgeBalanceBefore = await l1Token.balanceOf(l1TokenBridge.address);
 
-    const tx = await l1TokenBridge.depositERC20ToByChainId(
-      chainId,
+    const tx = await l1TokenBridge.depositERC20To(
       l1Token.address,
       l2Token.address,
       recipient.address,
@@ -521,7 +519,8 @@ async function ctxFactory() {
     l2TokenBridgeEOA.address,
     l1TokenStub.address,
     l2TokenStub.address,
-    libAddressManagerStub.address
+    libAddressManagerStub.address,
+    chainId
   );
 
   const l1TokenBridgeProxy = await new OssifiableProxy__factory(

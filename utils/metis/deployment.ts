@@ -33,6 +33,7 @@ export default function deployment(
   options: MtsDeploymentOptions = {}
 ) {
   const mtsAddresses = addresses(networkName, options);
+  const l2ChainId = network.chainId("mts", networkName);
   return {
     async erc20TokenBridgeDeployScript(
       l1Token: string,
@@ -63,6 +64,7 @@ export default function deployment(
             l1Token,
             expectedL2TokenProxyAddress,
             mtsAddresses.AddressManager,
+            l2ChainId,
             options?.overrides,
           ],
           afterDeploy: (c) =>

@@ -96,9 +96,8 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       l1TokenBridgeEOA.address,
       l2TokenBridge.address,
       L1ERC20TokenBridgeMetis__factory.createInterface().encodeFunctionData(
-        "finalizeERC20WithdrawalByChainId",
+        "finalizeERC20Withdrawal",
         [
-          defaultChainId1,
           l1TokenStub.address,
           l2TokenStub.address,
           deployer.address,
@@ -203,9 +202,8 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       l1TokenBridgeEOA.address,
       l2TokenBridge.address,
       L1ERC20TokenBridgeMetis__factory.createInterface().encodeFunctionData(
-        "finalizeERC20WithdrawalByChainId",
+        "finalizeERC20Withdrawal",
         [
-          defaultChainId1,
           l1TokenStub.address,
           l2TokenStub.address,
           deployer.address,

@@ -6,7 +6,7 @@ import env from "../../utils/env";
 import { wei } from "../../utils/wei";
 import network from "../../utils/network";
 import metis from "../../utils/metis";
-import { ERC20Mintable } from "../../typechain";
+import { ERC20L1Stub__factory } from "../../typechain";
 import { scenario } from "../../utils/testing";
 
 import {
@@ -32,11 +32,14 @@ scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
       const balanceBefore = await l1Token.balanceOf(l1Tester.address);
       if (balanceBefore.lt(depositAmount)) {
         try {
-          await (l1Token as ERC20Mintable).mint(
-            l1Tester.address,
+          const tx = await l1Token.mint(
             depositAmount
           );
-        } catch {}
+          await tx.wait();
+        } catch (e) {
+          console.log("Couldn't transfer tokens to tester, skipping test");
+          throw e
+        }
         const balanceAfter = await l1Token.balanceOf(l1Tester.address);
         assert.isTrue(
           balanceAfter.gte(depositAmount),
@@ -68,8 +71,7 @@ scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
     async (ctx) => {
       const l2Gas = 5000000;
       depositTokensTxResponse =
-        await ctx.l1ERC20TokenBridge.depositERC20ToByChainId(
-          ctx.chainIdTo,
+        await ctx.l1ERC20TokenBridge.depositERC20To(
           ctx.l1Token.address,
           ctx.l2Token.address,
           ctx.l2Tester.address,
@@ -170,6 +172,8 @@ async function ctxFactory() {
     LibAddressManagerMetis
   );
 
+  const l1Token = ERC20L1Stub__factory.connect(testingSetup.l1Token.address, testingSetup.l1Tester);
+
   return {
     chainIdTo,
     watcher,
@@ -177,7 +181,7 @@ async function ctxFactory() {
     withdrawalAmount: wei`0.0025 ether`,
     l1Tester: testingSetup.l1Tester,
     l2Tester: testingSetup.l2Tester,
-    l1Token: testingSetup.l1Token,
+    l1Token: l1Token,
     l2Token: testingSetup.l2Token,
     l1ERC20TokenBridge: testingSetup.l1ERC20TokenBridge,
     l2ERC20TokenBridge: testingSetup.l2ERC20TokenBridge,
