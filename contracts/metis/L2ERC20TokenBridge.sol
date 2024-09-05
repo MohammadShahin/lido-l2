@@ -3,6 +3,8 @@
 
 pragma solidity 0.8.10;
 
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+
 import {IL1ERC20BridgeMetis} from "./interfaces/IL1ERC20Bridge.sol";
 import {IL2ERC20BridgeMetis} from "./interfaces/IL2ERC20Bridge.sol";
 import {IERC20Bridged} from "../token/interfaces/IERC20Bridged.sol";
@@ -49,6 +51,9 @@ contract L2ERC20TokenBridgeMetis is
         uint32 l1Gas_,
         bytes calldata data_
     ) external payable whenWithdrawalsEnabled onlySupportedL2Token(l2Token_) {
+        if (Address.isContract(msg.sender)) {
+            revert ErrorSenderNotEOA();
+        }
         _initiateWithdrawal(msg.sender, msg.sender, amount_, l1Gas_, data_);
     }
 
@@ -187,6 +192,7 @@ contract L2ERC20TokenBridgeMetis is
         );
     }
 
+    error ErrorSenderNotEOA();
     error ErrorNotImplemented();
     error ErrorZeroAmount();
 }
