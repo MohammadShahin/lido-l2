@@ -134,6 +134,11 @@ contract L2ERC20TokenBridgeMetis is
         uint32 l1Gas_,
         bytes calldata data_
     ) internal {
+
+        if (amount_ == 0) {
+            revert ErrorZeroAmount();
+        }
+
         uint256 minErc20BridgeCost = OVM_GasPriceOracleMetis(
             Lib_PredeployAddresses.OVM_GASPRICE_ORACLE
         ).minErc20BridgeCost();
@@ -183,4 +188,5 @@ contract L2ERC20TokenBridgeMetis is
     }
 
     error ErrorNotImplemented();
+    error ErrorZeroAmount();
 }

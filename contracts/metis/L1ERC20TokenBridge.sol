@@ -155,6 +155,10 @@ contract L1ERC20TokenBridgeMetis is
         bytes calldata data_
     ) internal {
 
+        if (amount_ == 0) {
+            revert ErrorZeroAmount();
+        }
+
         iMVM_DiscountOracleMetis oracle = iMVM_DiscountOracleMetis(
             Lib_AddressManagerMetis(addressmgr).getAddress("MVM_DiscountOracle")
         );
@@ -233,4 +237,5 @@ contract L1ERC20TokenBridgeMetis is
     }
 
     error ErrorSenderNotEOA();
+    error ErrorZeroAmount();
 }
