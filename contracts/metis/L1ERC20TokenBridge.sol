@@ -164,6 +164,9 @@ contract L1ERC20TokenBridgeMetis is
         );
 
         // stack too deep. so no more local variables
+        // the min gas from the oracle (uint256) is casted to uint32. It is unlikely that the value will be too large.
+        // We check with the require below anyway.
+        require(oracle.getMinL2Gas() <= type(uint32).max, "minL2Gas too large");
         if (l2Gas_ < uint32(oracle.getMinL2Gas())) {
             l2Gas_ = uint32(oracle.getMinL2Gas());
         }
