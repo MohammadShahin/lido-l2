@@ -7,39 +7,13 @@ import {
 import { unit } from "../../utils/testing";
 import { wei } from "../../utils/wei";
 
-unit("ERC20BridgedPermit", ctxFactory)
+unit("ERC20BridgedPermit2", ctxFactory)
   .test("bridge()", async (ctx) => {
     assert.equal(await ctx.erc20Bridged.bridge(), ctx.accounts.owner.address);
   })
 
   .test("totalSupply()", async (ctx) => {
     assert.equalBN(await ctx.erc20Bridged.totalSupply(), ctx.constants.premint);
-  })
-
-  .test("initialize() :: name already set", async (ctx) => {
-    const { deployer, owner } = ctx.accounts;
-
-    // deploy new implementation
-    const erc20BridgedImpl = await new ERC20BridgedPermit__factory(
-      deployer
-    ).deploy("Name", "", 9, owner.address);
-    await assert.revertsWith(
-      erc20BridgedImpl.initialize("New Name", ""),
-      "ErrorNameAlreadySet"
-    );
-  })
-
-  .test("initialize() :: symbol already set", async (ctx) => {
-    const { deployer, owner } = ctx.accounts;
-
-    // deploy new implementation
-    const erc20BridgedImpl = await new ERC20BridgedPermit__factory(
-      deployer
-    ).deploy("", "Symbol", 9, owner.address);
-    await assert.revertsWith(
-      erc20BridgedImpl.initialize("", "New Symbol"),
-      "ErrorSymbolAlreadySet"
-    );
   })
 
   .test("approve()", async (ctx) => {
@@ -598,10 +572,10 @@ async function ctxFactory() {
   const [deployer, owner, recipient, spender, holder, stranger] =
     await hre.ethers.getSigners();
   const l2TokenImpl = await new ERC20BridgedPermit__factory(deployer).deploy(
-    name,
-    symbol,
-    decimals,
-    owner.address
+    // name,
+    // symbol,
+    // decimals,
+    // owner.address
   );
 
   await hre.network.provider.request({
@@ -616,7 +590,7 @@ async function ctxFactory() {
     deployer.address,
     ERC20BridgedPermit__factory.createInterface().encodeFunctionData(
       "initialize",
-      [name, symbol]
+      [name, symbol, decimals, owner.address]
     )
   );
 

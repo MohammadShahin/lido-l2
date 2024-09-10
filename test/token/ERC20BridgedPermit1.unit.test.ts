@@ -21,7 +21,7 @@ const types: Record<string, ethers.TypedDataField[]> = {
   ],
 };
 
-describe("Metis :: ERC20Bridged", async () => {
+describe("ERC20BridgedPermit1", async () => {
   async function setup() {
     const name = "ERC20 Test Token";
     const symbol = "ERC20";
@@ -32,10 +32,10 @@ describe("Metis :: ERC20Bridged", async () => {
     const chainId = (await hre.ethers.provider.getNetwork()).chainId;
 
     const l2TokenImpl = await new ERC20BridgedPermit__factory(deployer).deploy(
-      name,
-      symbol,
-      decimals,
-      deployer.address
+      // name,
+      // symbol,
+      // decimals,
+      // deployer.address
     );
 
     const l2TokensProxy = await new OssifiableProxy__factory(deployer).deploy(
@@ -43,7 +43,7 @@ describe("Metis :: ERC20Bridged", async () => {
       deployer.address,
       ERC20BridgedPermit__factory.createInterface().encodeFunctionData(
         "initialize",
-        [name, symbol]
+        [name, symbol, decimals, deployer.address]
       )
     );
 

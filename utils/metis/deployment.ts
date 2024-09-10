@@ -20,7 +20,7 @@ interface MtsL1DeployScriptParams {
 }
 
 interface MtsL2DeployScriptParams extends MtsL1DeployScriptParams {
-  l2Token?: { name?: string; symbol?: string; isTokenWithPermit?: boolean };
+  l2Token?: { name?: string; symbol?: string; };
 }
 
 interface MtsDeploymentOptions extends CommonOptions {
@@ -96,9 +96,7 @@ export default function deployment(
         l2Params.l2Token?.symbol ?? l1TokenInfo.symbol(),
       ]);
 
-      const TokenFactory = l2Params.l2Token?.isTokenWithPermit
-        ? ERC20BridgedPermit__factory
-        : ERC20Bridged__factory;
+      const TokenFactory = ERC20BridgedPermit__factory;
       const l2DeployScript = new DeployScript(
         l2Params.deployer,
         options?.logger
@@ -106,10 +104,6 @@ export default function deployment(
         .addStep({
           factory: TokenFactory,
           args: [
-            l2TokenName,
-            l2TokenSymbol,
-            decimals,
-            expectedL2TokenBridgeProxyAddress,
             options?.overrides,
           ],
           afterDeploy: (c) =>
@@ -123,6 +117,8 @@ export default function deployment(
             TokenFactory.createInterface().encodeFunctionData("initialize", [
               l2TokenName,
               l2TokenSymbol,
+              decimals,
+              expectedL2TokenBridgeProxyAddress
             ]),
             options?.overrides,
           ],

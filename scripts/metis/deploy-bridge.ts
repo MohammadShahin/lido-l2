@@ -39,7 +39,6 @@ async function main() {
           bridge: mtsDeployer.address,
         },
         l2Token: {
-          isTokenWithPermit: true,
         },
       }
     );
