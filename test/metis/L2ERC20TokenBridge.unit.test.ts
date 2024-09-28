@@ -55,6 +55,33 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
     );
   })
 
+  .test("withdraw() :: too large data", async (ctx) => {
+    const {
+      l2TokenBridge,
+      veryLargeData,
+      stubs: {
+        l2Token: l2TokenStub,
+      },
+    } = ctx;
+
+    const amount = wei`1 ether`;
+    const l1Gas = wei`1 wei`;
+    const tx = l2TokenBridge.withdraw(
+      l2TokenStub.address,
+      amount,
+      l1Gas,
+      veryLargeData,
+      {
+        value: wei.toBigNumber(wei`1 ether`),
+      }
+    );
+
+    await assert.revertsWith(
+      tx,
+      "Transaction data size exceeds maximum for rollup transaction."
+    );
+  })
+
   .test("withdraw()", async (ctx) => {
     const {
       l2TokenBridge,
@@ -159,6 +186,35 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
         "0x"
       ),
       "ErrorUnsupportedL2Token"
+    );
+  })
+
+  .test("withdrawTo() :: too large data", async (ctx) => {
+    const {
+      l2TokenBridge,
+      veryLargeData,
+      accounts: { recipient },
+      stubs: {
+        l2Token: l2TokenStub,
+      },
+    } = ctx;
+
+    const amount = wei`1 ether`;
+    const l1Gas = wei`1 wei`;
+    const tx = l2TokenBridge.withdrawTo(
+      l2TokenStub.address,
+      recipient.address,
+      amount,
+      l1Gas,
+      veryLargeData,
+      {
+        value: wei.toBigNumber(wei`1 ether`),
+      }
+    );
+
+    await assert.revertsWith(
+      tx,
+      "Transaction data size exceeds maximum for rollup transaction."
     );
   })
 
@@ -466,6 +522,8 @@ async function ctxFactory() {
   await l2TokenBridge.enableDeposits();
   await l2TokenBridge.enableWithdrawals();
 
+  const veryLargeData = "0x" + "0".repeat(130000);
+
   return {
     stubs: { l1Token, l2Token, l2Messenger: l2Messenger },
     accounts: {
@@ -477,5 +535,6 @@ async function ctxFactory() {
       l1TokenBridgeEOA,
     },
     l2TokenBridge,
+    veryLargeData
   };
 }

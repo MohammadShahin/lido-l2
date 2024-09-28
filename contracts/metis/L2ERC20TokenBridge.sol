@@ -7,6 +7,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 import {IL1ERC20BridgeMetis} from "./interfaces/IL1ERC20Bridge.sol";
 import {IL2ERC20BridgeMetis} from "./interfaces/IL2ERC20Bridge.sol";
+import {IMessageNonceHandler} from "./interfaces/IMessageNonceHandler.sol";
 import {IERC20Bridged} from "../token/interfaces/IERC20Bridged.sol";
 
 import {BridgingManagerEnumerable} from "../BridgingManagerEnumerable.sol";
@@ -15,6 +16,7 @@ import {CrossDomainEnabledMetis} from "./CrossDomainEnabled.sol";
 
 import {OVM_GasPriceOracleMetis} from "./predeploys/OVM_GasPriceOracle.sol";
 import {Lib_PredeployAddresses} from "./libraries/Lib_PredeployAddresses.sol";
+import { Lib_CrossDomainUtils } from "./libraries/Lib_CrossDomainUtils.sol";
 import {Lib_Uint} from "./utils/Lib_Uint.sol";
 
 /// @notice The L2 token bridge works with the L1 token bridge to enable ERC20 token bridging
@@ -30,6 +32,8 @@ contract L2ERC20TokenBridgeMetis is
 {
     /// @inheritdoc IL2ERC20BridgeMetis
     address public immutable l1TokenBridge;
+
+    uint256 public constant MAX_ROLLUP_TX_SIZE = 50000;
 
     /// @param messenger_ L2 messenger address being used for cross-chain communications
     /// @param l1TokenBridge_  Address of the corresponding L1 bridge
@@ -159,10 +163,6 @@ contract L2ERC20TokenBridgeMetis is
             )
         );
 
-        // When a withdrawal is initiated, we burn the withdrawer's funds to prevent subsequent L2
-        // usage
-        IERC20Bridged(l2Token).bridgeBurn(from_, amount_);
-
         // Construct calldata for l1TokenBridge.finalizeERC20Withdrawal(to_, amount_)
         bytes memory message = abi.encodeWithSelector(
             IL1ERC20BridgeMetis.finalizeERC20Withdrawal.selector,
@@ -173,6 +173,26 @@ contract L2ERC20TokenBridgeMetis is
             amount_,
             data_
         );
+
+        // build the xDomain calldata and check if it exceeds the maximum rollup tx size to prevent gas griefing attacks
+        // this should be done in l2 xDomainMessenger and it will be added in a future release
+
+        uint256 messageNonce = IMessageNonceHandler(address(messenger)).messageNonce();
+        bytes memory xDomainCalldata = Lib_CrossDomainUtils.encodeXDomainCalldata(
+            l1TokenBridge,
+            address(this),
+            message,
+            messageNonce
+        );
+
+        require(
+            xDomainCalldata.length <= MAX_ROLLUP_TX_SIZE, 
+            "Transaction data size exceeds maximum for rollup transaction."
+        );
+
+        // When a withdrawal is initiated, we burn the withdrawer's funds to prevent subsequent L2
+        // usage
+        IERC20Bridged(l2Token).bridgeBurn(from_, amount_);
 
         // Send message up to L1 bridge
         sendCrossDomainMessage(
