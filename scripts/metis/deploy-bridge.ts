@@ -22,7 +22,7 @@ async function main() {
   const deploymentConfig = deployment.loadMultiChainDeploymentConfig();
 
   const [l1DeployScript, l2DeployScript] = await metis
-    .deployment(networkName, { logger: console })
+    .deployment(networkName, { logger: console, overrides: { gasLimit: 3_200_000 } })
     .erc20TokenBridgeDeployScript(
       deploymentConfig.token,
       {
