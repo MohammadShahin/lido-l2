@@ -24,11 +24,11 @@ async function main() {
     l2TokenAddress,
     l2Signer
   );
-  const l2Token = ERC20BridgedPermit__factory.connect(l2TokenAddress, l2Signer);
-  const [tokenName, tokenSymbol] = await Promise.all([
-    l2Token.name(),
-    l2Token.symbol(),
-  ]);
+  const tokenName = "PETRIFIED";
+  const tokenSymbol = "PETRIFIED";
+  const decimals = 0;
+  const deadAddress = "0x000000000000000000000000000000000000dEaD";
+
   const l2TokenImplementationAddress =
     await l2TokenProxyContract.proxy__getImplementation();
   const l2TokenImplementationContract = ERC20BridgedPermit__factory.connect(
@@ -38,7 +38,9 @@ async function main() {
   try {
     const tx = await l2TokenImplementationContract.initialize(
       tokenName,
-      tokenSymbol
+      tokenSymbol,
+      decimals,
+      deadAddress,
     );
     await tx.wait();
     console.log(
@@ -56,7 +58,6 @@ async function main() {
     l1TokenBridgeAddress,
     l1Signer
   );
-  const l1ProxyAdmin = await l1TokenBridgeProxy.proxy__getAdmin();
   const l1TokenBridgeImplementationAddress =
     await l1TokenBridgeProxy.proxy__getImplementation();
   const l1TokenBridgeImplementationContract =
@@ -66,7 +67,7 @@ async function main() {
     );
   try {
     const tx = await l1TokenBridgeImplementationContract.initialize(
-      l1ProxyAdmin
+      deadAddress
     );
     await tx.wait();
     console.log(
@@ -84,7 +85,6 @@ async function main() {
     l2TokenBridgeAddress,
     l2Signer
   );
-  const l2ProxyAdmin = await l2TokenBridgeProxy.proxy__getAdmin();
   const l2TokenBridgeImplementationAddress =
     await l2TokenBridgeProxy.proxy__getImplementation();
   const l2TokenBridgeImplementationContract =
@@ -94,7 +94,7 @@ async function main() {
     );
   try {
     const tx = await l2TokenBridgeImplementationContract.initialize(
-      l2ProxyAdmin
+      deadAddress
     );
     await tx.wait();
     console.log(
