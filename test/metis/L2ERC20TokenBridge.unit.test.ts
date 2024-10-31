@@ -3,21 +3,17 @@ import {
   ERC20BridgedStub__factory,
   L1ERC20TokenBridgeMetis__factory,
   L2ERC20TokenBridgeMetis__factory,
-  L2ERC20TokenBridgeMetis2__factory,
   OssifiableProxy__factory,
   EmptyContractStub__factory,
   CrossDomainMessengerStubMetis__factory,
   OVMGasPriceOracleStubMetis__factory,
 } from "../../typechain";
 import testing, { unit } from "../../utils/testing";
-import network from "../../utils/network";
 import { wei } from "../../utils/wei";
 import { assert } from "chai";
 
-const networkName = "goerli";
-const chainId = network.chainId("mts", networkName);
-
-const defaultChainId = 31337;
+const defaultChainId1 = 31337;
+const defaultChainId2 = 1088;
 
 unit("Metis:: L2ERC20TokenBridge", ctxFactory)
   .test("l1TokenBridge()", async (ctx) => {
@@ -44,7 +40,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorWithdrawalsDisabled()"
+      "ErrorWithdrawalsDisabled"
     );
   })
 
@@ -55,7 +51,34 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
     } = ctx;
     await assert.revertsWith(
       l2TokenBridge.withdraw(stranger.address, wei`1 ether`, wei`1 gwei`, "0x"),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
+    );
+  })
+
+  .test("withdraw() :: too large data", async (ctx) => {
+    const {
+      l2TokenBridge,
+      veryLargeData,
+      stubs: {
+        l2Token: l2TokenStub,
+      },
+    } = ctx;
+
+    const amount = wei`1 ether`;
+    const l1Gas = wei`1 wei`;
+    const tx = l2TokenBridge.withdraw(
+      l2TokenStub.address,
+      amount,
+      l1Gas,
+      veryLargeData,
+      {
+        value: wei.toBigNumber(wei`1 ether`),
+      }
+    );
+
+    await assert.revertsWith(
+      tx,
+      "Transaction data size exceeds maximum for rollup transaction."
     );
   })
 
@@ -100,9 +123,8 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       l1TokenBridgeEOA.address,
       l2TokenBridge.address,
       L1ERC20TokenBridgeMetis__factory.createInterface().encodeFunctionData(
-        "finalizeERC20WithdrawalByChainId",
+        "finalizeERC20Withdrawal",
         [
-          defaultChainId,
           l1TokenStub.address,
           l2TokenStub.address,
           deployer.address,
@@ -113,7 +135,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l1Gas,
-      defaultChainId
+      defaultChainId2,
     ]);
 
     assert.equalBN(
@@ -146,7 +168,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorWithdrawalsDisabled()"
+      "ErrorWithdrawalsDisabled"
     );
   })
 
@@ -163,7 +185,36 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
+    );
+  })
+
+  .test("withdrawTo() :: too large data", async (ctx) => {
+    const {
+      l2TokenBridge,
+      veryLargeData,
+      accounts: { recipient },
+      stubs: {
+        l2Token: l2TokenStub,
+      },
+    } = ctx;
+
+    const amount = wei`1 ether`;
+    const l1Gas = wei`1 wei`;
+    const tx = l2TokenBridge.withdrawTo(
+      l2TokenStub.address,
+      recipient.address,
+      amount,
+      l1Gas,
+      veryLargeData,
+      {
+        value: wei.toBigNumber(wei`1 ether`),
+      }
+    );
+
+    await assert.revertsWith(
+      tx,
+      "Transaction data size exceeds maximum for rollup transaction."
     );
   })
 
@@ -207,9 +258,8 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       l1TokenBridgeEOA.address,
       l2TokenBridge.address,
       L1ERC20TokenBridgeMetis__factory.createInterface().encodeFunctionData(
-        "finalizeERC20WithdrawalByChainId",
+        "finalizeERC20Withdrawal",
         [
-          defaultChainId,
           l1TokenStub.address,
           l2TokenStub.address,
           deployer.address,
@@ -220,7 +270,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l1Gas,
-      defaultChainId
+      defaultChainId2,
     ]);
 
     assert.equalBN(
@@ -256,7 +306,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -278,7 +328,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL1Token()"
+      "ErrorUnsupportedL1Token"
     );
   })
 
@@ -300,7 +350,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -322,7 +372,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnauthorizedMessenger()"
+      "ErrorUnauthorizedMessenger"
     );
   })
 
@@ -346,7 +396,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorWrongCrossDomainSender()"
+      "ErrorWrongCrossDomainSender"
     );
   })
 
@@ -393,6 +443,7 @@ unit("Metis:: L2ERC20TokenBridge", ctxFactory)
 async function ctxFactory() {
   const [deployer, stranger, recipient, l1TokenBridgeEOA] =
     await hre.ethers.getSigners();
+  const provider = hre.ethers.provider;
 
   const l2Messenger = await new CrossDomainMessengerStubMetis__factory(
     deployer
@@ -420,14 +471,24 @@ async function ctxFactory() {
     deployer
   ).deploy(deployer.address);
 
-  const l2TokenBridgeImpl = await new L2ERC20TokenBridgeMetis2__factory(
+  const ovmGasPriceOracleStubCode = await provider.send("eth_getCode", [
+    ovmGasPriceOracleStub.address,
+  ]);
+
+  const ovmGasPriceOracleAddress = "0x420000000000000000000000000000000000000F";
+
+  await provider.send("hardhat_setCode", [
+    ovmGasPriceOracleAddress,
+    ovmGasPriceOracleStubCode,
+  ]);
+
+  const l2TokenBridgeImpl = await new L2ERC20TokenBridgeMetis__factory(
     deployer
   ).deploy(
     l2Messenger.address,
     l1TokenBridgeEOA.address,
     l1Token.address,
-    l2Token.address,
-    ovmGasPriceOracleStub.address
+    l2Token.address
   );
 
   const l2TokenBridgeProxy = await new OssifiableProxy__factory(
@@ -440,7 +501,7 @@ async function ctxFactory() {
     ])
   );
 
-  const l2TokenBridge = L2ERC20TokenBridgeMetis2__factory.connect(
+  const l2TokenBridge = L2ERC20TokenBridgeMetis__factory.connect(
     l2TokenBridgeProxy.address,
     deployer
   );
@@ -461,6 +522,8 @@ async function ctxFactory() {
   await l2TokenBridge.enableDeposits();
   await l2TokenBridge.enableWithdrawals();
 
+  const veryLargeData = "0x" + "0".repeat(130000);
+
   return {
     stubs: { l1Token, l2Token, l2Messenger: l2Messenger },
     accounts: {
@@ -472,5 +535,6 @@ async function ctxFactory() {
       l1TokenBridgeEOA,
     },
     l2TokenBridge,
+    veryLargeData
   };
 }

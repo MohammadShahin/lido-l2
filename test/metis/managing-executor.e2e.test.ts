@@ -4,16 +4,15 @@ import { TransactionResponse } from "@ethersproject/providers";
 import {
   L2ERC20TokenBridgeMetis__factory,
   GovBridgeExecutor__factory,
+  AragonAgentMock__factory,
 } from "../../typechain";
 import {
   E2E_TEST_CONTRACTS_METIS as E2E_TEST_CONTRACTS,
   sleep,
 } from "../../utils/testing/e2e";
 import env from "../../utils/env";
-import { wei } from "../../utils/wei";
 import network from "../../utils/network";
 import { scenario } from "../../utils/testing";
-import lido from "../../utils/lido";
 import metis from "../../utils/metis";
 
 let messageTx: TransactionResponse;
@@ -21,16 +20,12 @@ let oldGuardian: string;
 let newGuardian: string;
 
 scenario("Metis :: AAVE governance crosschain bridge management", ctxFactory)
-  .step("LDO Holder has enought ETH", async ({ l1LDOHolder, gasAmount }) => {
-    assert.gte(await l1LDOHolder.getBalance(), gasAmount);
-  })
-
-  .step(`Starting DAO vote: Update guardian`, async (ctx) => {
+  .step(`Update L2 executor guardian from L1`, async (ctx) => {
     oldGuardian = await ctx.govBridgeExecutor.getGuardian();
     newGuardian =
-      oldGuardian === "0x4e8CC9024Ea3FE886623025fF2aD0CA4bb3D1F42"
-        ? "0xD06491e4C8B3107B83dC134894C4c96ED8ddbfa2"
-        : "0x4e8CC9024Ea3FE886623025fF2aD0CA4bb3D1F42";
+      oldGuardian === "0xa5F1d7D49F581136Cf6e58B32cBE9a2039C48bA1"
+        ? "0x0000000000000000000000000000000000000000"
+        : "0xa5F1d7D49F581136Cf6e58B32cBE9a2039C48bA1";
 
     const updateGuardianCalldata =
       ctx.govBridgeExecutor.interface.encodeFunctionData("updateGuardian", [
@@ -38,46 +33,34 @@ scenario("Metis :: AAVE governance crosschain bridge management", ctxFactory)
       ]);
     const updateGuardianData = "0x" + updateGuardianCalldata.substring(10);
 
-    const executorCalldata =
-      await ctx.govBridgeExecutor.interface.encodeFunctionData("queue", [
+    const executorCalldata = ctx.govBridgeExecutor.interface.encodeFunctionData(
+      "queue",
+      [
         [ctx.govBridgeExecutor.address],
         [0],
         ["updateGuardian(address)"],
         [updateGuardianData],
         [false],
-      ]);
-
-    const mtsAddresses = metis.addresses("goerli");
+      ]
+    );
 
     const { calldata, callvalue } = await ctx.messaging.prepareL2Message({
-      sender: ctx.lidoAragonDAO.agent.address,
+      sender: ctx.lidoAragonDAOMock.address,
       recipient: ctx.govBridgeExecutor.address,
       calldata: executorCalldata,
     });
 
-    const tx = await ctx.lidoAragonDAO.createVote(
-      ctx.l1LDOHolder,
-      "E2E Test Voting",
-      {
-        address: ctx.lidoAragonDAO.agent.address,
-        signature: "execute(address,uint256,bytes)",
-        decodedCallData: [
-          mtsAddresses.L1CrossDomainMessenger,
-          callvalue,
-          calldata,
-        ],
-      }
-    );
+    const transferTx = await ctx.l1Tester.sendTransaction({
+      to: ctx.lidoAragonDAOMock.address,
+      value: callvalue,
+    });
 
-    await tx.wait();
-  })
+    await transferTx.wait();
 
-  .step("Enacting Vote", async ({ lidoAragonDAO, l1LDOHolder }) => {
-    const votesLength = await lidoAragonDAO.voting.votesLength();
-
-    messageTx = await lidoAragonDAO.voteAndExecute(
-      l1LDOHolder,
-      votesLength.toNumber() - 1
+    messageTx = await ctx.lidoAragonDAOMock.execute(
+      ctx.mtsAddresses.L1CrossDomainMessenger,
+      callvalue,
+      calldata
     );
 
     await messageTx.wait();
@@ -115,25 +98,35 @@ scenario("Metis :: AAVE governance crosschain bridge management", ctxFactory)
   .run();
 
 async function ctxFactory() {
-  const ethMtsNetwork = network.multichain(["eth", "mts"], "goerli");
+  const networkName = "sepolia";
+  const ethMtsNetwork = network.multichain(["eth", "mts"], networkName);
 
-  const [l1Provider] = ethMtsNetwork.getProviders({ forking: false });
-  const [, l2Tester] = ethMtsNetwork.getSigners(
+  const { LibAddressManagerMetis } = metis.contracts(networkName, {
+    forking: false,
+  });
+  const mtsAddresses = metis.addresses(networkName);
+  const [l1Tester, l2Tester] = ethMtsNetwork.getSigners(
     env.string("TESTING_PRIVATE_KEY"),
     { forking: false }
   );
-
-  const [l1LDOHolder] = ethMtsNetwork.getSigners(
-    env.string("TESTING_MTS_LDO_HOLDER_PRIVATE_KEY"),
-    { forking: false }
+  const lidoAragonDAOMockAddress = env.address(
+    "TESTING_MTS_LIDO_DAO_MOCK",
+    "0x"
   );
+  const lidoAragonDAOMock = AragonAgentMock__factory.connect(
+    lidoAragonDAOMockAddress,
+    l1Tester
+  );
+  const addressManager = LibAddressManagerMetis.connect(l1Tester);
 
   return {
-    lidoAragonDAO: lido("goerli", l1Provider),
-    messaging: metis.messaging("goerli", { forking: false }),
-    gasAmount: wei`0.1 ether`,
+    lidoAragonDAOMock,
+    addressManager,
+    mtsAddresses,
+    messaging: metis.messaging(networkName, { forking: false }),
+    l1Tester,
     l2Tester,
-    l1LDOHolder,
+    lidoAragonDAOMockAddress,
     l2ERC20TokenBridge: L2ERC20TokenBridgeMetis__factory.connect(
       E2E_TEST_CONTRACTS.l2.l2ERC20TokenBridge,
       l2Tester

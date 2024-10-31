@@ -1,18 +1,22 @@
-// SPDX-FileCopyrightText: 2022 Lido <info@lido.fi>
+// SPDX-FileCopyrightText: 2024 Lido <info@lido.fi>
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity 0.8.10;
 
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+
 import {IL1ERC20BridgeMetis} from "./interfaces/IL1ERC20Bridge.sol";
 import {IL2ERC20BridgeMetis} from "./interfaces/IL2ERC20Bridge.sol";
+import {IMessageNonceHandler} from "./interfaces/IMessageNonceHandler.sol";
 import {IERC20Bridged} from "../token/interfaces/IERC20Bridged.sol";
 
-import {BridgingManager} from "../BridgingManager.sol";
+import {BridgingManagerEnumerable} from "../BridgingManagerEnumerable.sol";
 import {BridgeableTokens} from "../BridgeableTokens.sol";
 import {CrossDomainEnabledMetis} from "./CrossDomainEnabled.sol";
 
 import {OVM_GasPriceOracleMetis} from "./predeploys/OVM_GasPriceOracle.sol";
 import {Lib_PredeployAddresses} from "./libraries/Lib_PredeployAddresses.sol";
+import { Lib_CrossDomainUtils } from "./libraries/Lib_CrossDomainUtils.sol";
 import {Lib_Uint} from "./utils/Lib_Uint.sol";
 
 /// @notice The L2 token bridge works with the L1 token bridge to enable ERC20 token bridging
@@ -22,12 +26,14 @@ import {Lib_Uint} from "./utils/Lib_Uint.sol";
 ///     the methods for bridging management: enabling and disabling withdrawals/deposits
 contract L2ERC20TokenBridgeMetis is
     IL2ERC20BridgeMetis,
-    BridgingManager,
+    BridgingManagerEnumerable,
     BridgeableTokens,
     CrossDomainEnabledMetis
 {
     /// @inheritdoc IL2ERC20BridgeMetis
     address public immutable l1TokenBridge;
+
+    uint256 public constant MAX_ROLLUP_TX_SIZE = 50000;
 
     /// @param messenger_ L2 messenger address being used for cross-chain communications
     /// @param l1TokenBridge_  Address of the corresponding L1 bridge
@@ -42,14 +48,6 @@ contract L2ERC20TokenBridgeMetis is
         l1TokenBridge = l1TokenBridge_;
     }
 
-    function getChainID() internal view returns (uint256) {
-        uint256 id;
-        assembly {
-            id := chainid()
-        }
-        return id;
-    }
-
     /// @inheritdoc IL2ERC20BridgeMetis
     function withdraw(
         address l2Token_,
@@ -57,6 +55,9 @@ contract L2ERC20TokenBridgeMetis is
         uint32 l1Gas_,
         bytes calldata data_
     ) external payable whenWithdrawalsEnabled onlySupportedL2Token(l2Token_) {
+        if (Address.isContract(msg.sender)) {
+            revert ErrorSenderNotEOA();
+        }
         _initiateWithdrawal(msg.sender, msg.sender, amount_, l1Gas_, data_);
     }
 
@@ -75,7 +76,7 @@ contract L2ERC20TokenBridgeMetis is
         uint256 amount_,
         uint32 l1Gas_,
         bytes calldata data_
-    ) external payable whenWithdrawalsEnabled onlySupportedL2Token(l2Token_) {
+    ) external payable whenWithdrawalsEnabled onlySupportedL2Token(l2Token_) onlyNonZeroAccount(to_) {
         _initiateWithdrawal(msg.sender, to_, amount_, l1Gas_, data_);
     }
 
@@ -103,6 +104,9 @@ contract L2ERC20TokenBridgeMetis is
         onlySupportedL2Token(l2Token_)
         onlyFromCrossDomainAccount(l1TokenBridge)
     {
+        // Theses check were removed because after running the modifiers, the L1 and L2 token
+        // addresses are already checked
+        // 
         // Check the target token is compliant and
         // verify the deposited token on L1 matches the L2 deposited token representation here
         // if (
@@ -139,29 +143,29 @@ contract L2ERC20TokenBridgeMetis is
         uint32 l1Gas_,
         bytes calldata data_
     ) internal {
-        uint256 minL1Gas = OVM_GasPriceOracleMetis(
+
+        if (amount_ == 0) {
+            revert ErrorZeroAmount();
+        }
+
+        uint256 minErc20BridgeCost = OVM_GasPriceOracleMetis(
             Lib_PredeployAddresses.OVM_GASPRICE_ORACLE
         ).minErc20BridgeCost();
 
-        // require minimum gas unless, the metis manager is the sender
+        // require minimum gas
         require(
-            msg.value >= minL1Gas,
+            msg.value >= minErc20BridgeCost,
             string(
                 abi.encodePacked(
                     "insufficient withdrawal fee supplied. need at least ",
-                    Lib_Uint.uint2str(minL1Gas)
+                    Lib_Uint.uint2str(minErc20BridgeCost)
                 )
             )
         );
 
-        // When a withdrawal is initiated, we burn the withdrawer's funds to prevent subsequent L2
-        // usage
-        IERC20Bridged(l2Token).bridgeBurn(from_, amount_);
-
-        // Construct calldata for l1TokenBridge.finalizeERC20WithdrawalByChainId(to_, amount_)
+        // Construct calldata for l1TokenBridge.finalizeERC20Withdrawal(to_, amount_)
         bytes memory message = abi.encodeWithSelector(
-            IL1ERC20BridgeMetis.finalizeERC20WithdrawalByChainId.selector,
-            getChainID(),
+            IL1ERC20BridgeMetis.finalizeERC20Withdrawal.selector,
             l1Token,
             l2Token,
             from_,
@@ -170,9 +174,28 @@ contract L2ERC20TokenBridgeMetis is
             data_
         );
 
+        // build the xDomain calldata and check if it exceeds the maximum rollup tx size to prevent gas griefing attacks
+        // this should be done in l2 xDomainMessenger and it will be added in a future release
+
+        uint256 messageNonce = IMessageNonceHandler(address(messenger)).messageNonce();
+        bytes memory xDomainCalldata = Lib_CrossDomainUtils.encodeXDomainCalldata(
+            l1TokenBridge,
+            address(this),
+            message,
+            messageNonce
+        );
+
+        require(
+            xDomainCalldata.length <= MAX_ROLLUP_TX_SIZE, 
+            "Transaction data size exceeds maximum for rollup transaction."
+        );
+
+        // When a withdrawal is initiated, we burn the withdrawer's funds to prevent subsequent L2
+        // usage
+        IERC20Bridged(l2Token).bridgeBurn(from_, amount_);
+
         // Send message up to L1 bridge
-        sendCrossDomainMessageViaChainId(
-            getChainID(),
+        sendCrossDomainMessage(
             l1TokenBridge,
             l1Gas_,
             message,
@@ -189,5 +212,7 @@ contract L2ERC20TokenBridgeMetis is
         );
     }
 
+    error ErrorSenderNotEOA();
     error ErrorNotImplemented();
+    error ErrorZeroAmount();
 }

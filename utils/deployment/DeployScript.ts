@@ -168,6 +168,7 @@ export class DeployScript {
       1: "eth_mainnet",
       5: "eth_goerli",
       17000: "eth_holesky",
+      11155111: "eth_sepolia",
       10: "opt_mainnet",
       420: "opt_goerli",
       31337: "hardhat",
@@ -175,7 +176,7 @@ export class DeployScript {
       421613: "arb_goerli",
       1088: "mts_mainnet",
       599: "mts_goerli",
-      59901: "mts_holesky",
+      59902: "mts_sepolia",
     };
     const networkName = networkNameByChainId[chainId] || "<NETWORK_NAME>";
     const arsString = stepInfo.args.map((a) => `"${a.value}"`).join(" ");

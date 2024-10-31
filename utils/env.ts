@@ -48,7 +48,7 @@ function getAddressList(variableName: string, defaultValue?: string[]) {
 }
 
 function getNetwork(name: string = "NETWORK", defaultNetwork?: NetworkName) {
-  return getEnum(name, ["mainnet", "goerli"], defaultNetwork);
+  return getEnum(name, ["mainnet", "goerli", "sepolia"], defaultNetwork);
 }
 
 function getPrivateKey() {
@@ -57,6 +57,17 @@ function getPrivateKey() {
 
 function getForking() {
   return getBool("FORKING", false);
+}
+
+function getBridgeExecutorConfig() {
+  return {
+    delay: getString("EXECUTION_DELAY", "0") as string,
+    gradePeriod: getString("EXECUTION_GRACE_PERIOD", "86400") as string,
+    minDelay: getString("EXECUTION_MIN_DELAY", "0") as string,
+    maxDelay: getString("EXECUTION_MAX_DELAY", "1") as string,
+    guardian: getAddress("EXECUTION_GUARDIAN"),
+    l1ExecutorAddress: getAddress("L1_EXECUTOR_ADDR") as string,
+  } as const;
 }
 
 export default {
@@ -69,4 +80,5 @@ export default {
   network: getNetwork,
   privateKey: getPrivateKey,
   forking: getForking,
+  bridgeExecutorConfig: getBridgeExecutorConfig,
 };

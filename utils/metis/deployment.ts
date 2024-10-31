@@ -6,6 +6,7 @@ import {
   L1ERC20TokenBridgeMetis__factory,
   L2ERC20TokenBridgeMetis__factory,
   OssifiableProxy__factory,
+  ERC20BridgedPermit__factory,
 } from "../../typechain";
 
 import addresses from "./addresses";
@@ -19,7 +20,7 @@ interface MtsL1DeployScriptParams {
 }
 
 interface MtsL2DeployScriptParams extends MtsL1DeployScriptParams {
-  l2Token?: { name?: string; symbol?: string };
+  l2Token?: { name?: string; symbol?: string; };
 }
 
 interface MtsDeploymentOptions extends CommonOptions {
@@ -32,6 +33,7 @@ export default function deployment(
   options: MtsDeploymentOptions = {}
 ) {
   const mtsAddresses = addresses(networkName, options);
+  const l2ChainId = network.chainId("mts", networkName);
   return {
     async erc20TokenBridgeDeployScript(
       l1Token: string,
@@ -62,6 +64,7 @@ export default function deployment(
             l1Token,
             expectedL2TokenProxyAddress,
             mtsAddresses.AddressManager,
+            l2ChainId,
             options?.overrides,
           ],
           afterDeploy: (c) =>
@@ -93,17 +96,14 @@ export default function deployment(
         l2Params.l2Token?.symbol ?? l1TokenInfo.symbol(),
       ]);
 
+      const TokenFactory = ERC20BridgedPermit__factory;
       const l2DeployScript = new DeployScript(
         l2Params.deployer,
         options?.logger
       )
         .addStep({
-          factory: ERC20Bridged__factory,
+          factory: TokenFactory,
           args: [
-            l2TokenName,
-            l2TokenSymbol,
-            decimals,
-            expectedL2TokenBridgeProxyAddress,
             options?.overrides,
           ],
           afterDeploy: (c) =>
@@ -114,10 +114,12 @@ export default function deployment(
           args: [
             expectedL2TokenImplAddress,
             l2Params.admins.proxy,
-            ERC20Bridged__factory.createInterface().encodeFunctionData(
-              "initialize",
-              [l2TokenName, l2TokenSymbol]
-            ),
+            TokenFactory.createInterface().encodeFunctionData("initialize", [
+              l2TokenName,
+              l2TokenSymbol,
+              decimals,
+              expectedL2TokenBridgeProxyAddress
+            ]),
             options?.overrides,
           ],
           afterDeploy: (c) =>

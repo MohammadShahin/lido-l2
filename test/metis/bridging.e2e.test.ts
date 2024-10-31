@@ -1,4 +1,3 @@
-import { CrossChainMessenger, DAIBridgeAdapter } from "@eth-optimism/sdk";
 import { assert } from "chai";
 import { TransactionResponse } from "@ethersproject/providers";
 import { getContractFactory } from "@eth-optimism/contracts";
@@ -7,33 +6,40 @@ import env from "../../utils/env";
 import { wei } from "../../utils/wei";
 import network from "../../utils/network";
 import metis from "../../utils/metis";
-import { ERC20Mintable } from "../../typechain";
+import { ERC20L1Stub__factory } from "../../typechain";
 import { scenario } from "../../utils/testing";
 
 import {
   Direction,
   initWatcher,
-  relayXDomainMessages,
   waitForXDomainTransaction,
+  CrossDomainMessagePair,
+  getMessagesAndProofs,
+  waitForOutsideFraudProofWindow,
+  relayXDomainMessages,
 } from "../../utils/metis/watcher";
 
 let depositTokensTxResponse: TransactionResponse;
 let withdrawTokensTxResponse: TransactionResponse;
+let messagesAndProofs: CrossDomainMessagePair[];
 
 // This test follows the tests from the Metis repo
 
 scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
   .step(
-    "Validate tester has required amount of L1 token",
+    "Mint to tester the required amount of L1 token",
     async ({ l1Token, l1Tester, depositAmount }) => {
       const balanceBefore = await l1Token.balanceOf(l1Tester.address);
       if (balanceBefore.lt(depositAmount)) {
         try {
-          await (l1Token as ERC20Mintable).mint(
-            l1Tester.address,
+          const tx = await l1Token.mint(
             depositAmount
           );
-        } catch {}
+          await tx.wait();
+        } catch (e) {
+          console.log("Couldn't transfer tokens to tester, skipping test");
+          throw e
+        }
         const balanceAfter = await l1Token.balanceOf(l1Tester.address);
         assert.isTrue(
           balanceAfter.gte(depositAmount),
@@ -44,9 +50,8 @@ scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
   )
 
   .step("Set allowance for L1ERC20TokenBridge to deposit", async (ctx) => {
-    const allowanceTxResponse = await ctx.crossChainMessenger.approveERC20(
-      ctx.l1Token.address,
-      ctx.l2Token.address,
+    const allowanceTxResponse = await ctx.l1Token.approve(
+      ctx.l1ERC20TokenBridge.address,
       ctx.depositAmount
     );
 
@@ -62,12 +67,11 @@ scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
   })
 
   .step(
-    "Bridge tokens from L1 to L2 via depositERC20ByChainId",
+    "Bridge tokens from L1 to L2 via depositERC20",
     async (ctx) => {
       const l2Gas = 5000000;
       depositTokensTxResponse =
-        await ctx.l1ERC20TokenBridge.depositERC20ByChainId(
-          ctx.chainIdTo,
+        await ctx.l1ERC20TokenBridge.depositERC20(
           ctx.l1Token.address,
           ctx.l2Token.address,
           ctx.depositAmount,
@@ -104,14 +108,30 @@ scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
     await withdrawTokensTxResponse.wait();
   })
 
-  .step("Relay the L2 => L1 message", async (ctx) => {
-    await relayXDomainMessages(
+  .step("Get the message(s) and proof(s)", async (ctx) => {
+    messagesAndProofs = await getMessagesAndProofs(
       withdrawTokensTxResponse,
       ctx.l1Provider,
       ctx.l2Provider,
-      ctx.l1CrossDomainMessenger,
       ctx.l2CrossDomainMessenger,
+      ctx.stateCommitmentChain,
+      ctx.chainIdTo,
+      ctx.l2Tester
+    );
+  })
+
+  .step("Wait for the message to be outside the fraud period", async (ctx) => {
+    await waitForOutsideFraudProofWindow(
+      messagesAndProofs,
       ctx.stateCommitmentChain
+    );
+  })
+
+  .step("Relay the L2 => L1 message", async (ctx) => {
+    await relayXDomainMessages(
+      messagesAndProofs,
+      ctx.l1CrossDomainMessenger,
+      ctx.chainIdTo
     );
   })
 
@@ -126,9 +146,7 @@ scenario("Metis :: Bridging via deposit/withdraw E2E test", ctxFactory)
   .run();
 
 async function ctxFactory() {
-  const networkName = env.network("TESTING_MTS_NETWORK", "goerli");
-  const { AddressManager, L1CrossDomainMessenger, L2CrossDomainMessenger } =
-    metis.addresses(networkName);
+  const networkName = env.network("TESTING_MTS_NETWORK", "sepolia");
   const testingSetup = await metis.testing(networkName).getE2ETestSetup();
 
   // todo: We need it to keep it in the utils metis addresses.
@@ -152,13 +170,16 @@ async function ctxFactory() {
     LibAddressManagerMetis
   );
 
+  const l1Token = ERC20L1Stub__factory.connect(testingSetup.l1Token.address, testingSetup.l1Tester);
+
   return {
     chainIdTo,
     watcher,
     depositAmount: wei`0.0025 ether`,
     withdrawalAmount: wei`0.0025 ether`,
     l1Tester: testingSetup.l1Tester,
-    l1Token: testingSetup.l1Token,
+    l2Tester: testingSetup.l2Tester,
+    l1Token: l1Token,
     l2Token: testingSetup.l2Token,
     l1ERC20TokenBridge: testingSetup.l1ERC20TokenBridge,
     l2ERC20TokenBridge: testingSetup.l2ERC20TokenBridge,
@@ -167,44 +188,5 @@ async function ctxFactory() {
     stateCommitmentChain,
     l1Provider: testingSetup.l1Provider,
     l2Provider: testingSetup.l2Provider,
-    crossChainMessenger: new CrossChainMessenger({
-      l2ChainId: network.chainId("mts", networkName),
-      l1ChainId: network.chainId("eth", networkName),
-      l1SignerOrProvider: testingSetup.l1Tester,
-      l2SignerOrProvider: testingSetup.l2Tester,
-      contracts: {
-        l1: {
-          AddressManager,
-          L1CrossDomainMessenger,
-          L1StandardBridge: "0xCF7257A86A5dBba34bAbcd2680f209eb9a05b2d2",
-          StateCommitmentChain: "0xd7344Cd0cC2C1A4c208B87fF227aDd1A576ac397",
-          CanonicalTransactionChain:
-            "0x6Aec60fc997B4e2931b892398517b56F7b3C48Dd",
-          BondManager: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9",
-          OptimismPortal: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-          L2OutputOracle: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-        },
-        l2: {
-          L2CrossDomainMessenger,
-          L2StandardBridge: "0x4200000000000000000000000000000000000010",
-          L2ToL1MessagePasser: "0x4200000000000000000000000000000000000000",
-          OVM_L1BlockNumber: "0x4200000000000000000000000000000000000013",
-          OVM_L2ToL1MessagePasser: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9",
-          OVM_DeployerWhitelist: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-          OVM_ETH: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-          OVM_GasPriceOracle: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-          OVM_SequencerFeeVault: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-          WETH: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-          BedrockMessagePasser: "0x68c39fc25cd754009C87B3160D5Fc9c155A6dFb9", // todo
-        },
-      },
-      bridges: {
-        LidoBridge: {
-          Adapter: DAIBridgeAdapter,
-          l1Bridge: testingSetup.l1ERC20TokenBridge.address,
-          l2Bridge: testingSetup.l2ERC20TokenBridge.address,
-        },
-      },
-    }),
   };
 }

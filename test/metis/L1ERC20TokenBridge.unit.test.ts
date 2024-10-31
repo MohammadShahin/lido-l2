@@ -14,7 +14,7 @@ import network from "../../utils/network";
 import testing, { unit } from "../../utils/testing";
 import { wei } from "../../utils/wei";
 
-const networkName = "goerli";
+const networkName = "sepolia";
 const chainId = network.chainId("mts", networkName);
 
 unit("Metis :: L1ERC20TokenBridge", ctxFactory)
@@ -45,7 +45,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -58,7 +58,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorUnsupportedL1Token()"
+      "ErrorUnsupportedL1Token"
     );
   })
 
@@ -71,7 +71,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -86,7 +86,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 gwei`,
           "0x"
         ),
-      "ErrorSenderNotEOA()"
+      "ErrorSenderNotEOA"
     );
   })
 
@@ -106,8 +106,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
     const deployerBalanceBefore = await l1Token.balanceOf(deployer.address);
     const bridgeBalanceBefore = await l1Token.balanceOf(l1TokenBridge.address);
 
-    const tx = await l1TokenBridge.depositERC20ByChainId(
-      chainId,
+    const tx = await l1TokenBridge.depositERC20(
       l1Token.address,
       l2Token.address,
       amount,
@@ -176,7 +175,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -199,7 +198,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -222,7 +221,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorDepositsDisabled()"
+      "ErrorDepositsDisabled"
     );
   })
 
@@ -242,7 +241,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
         wei`1 gwei`,
         "0x"
       ),
-      "ErrorAccountIsZeroAddress()"
+      "ErrorAccountIsZeroAddress"
     );
   })
 
@@ -262,8 +261,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
     const deployerBalanceBefore = await l1Token.balanceOf(deployer.address);
     const bridgeBalanceBefore = await l1Token.balanceOf(l1TokenBridge.address);
 
-    const tx = await l1TokenBridge.depositERC20ToByChainId(
-      chainId,
+    const tx = await l1TokenBridge.depositERC20To(
       l1Token.address,
       l2Token.address,
       recipient.address,
@@ -300,7 +298,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
       ),
       1, // message nonce
       l2Gas,
-      chainId
+      chainId,
     ]);
 
     assert.equalBN(
@@ -337,7 +335,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
             wei`1 ether`,
             "0x"
           ),
-        "ErrorWithdrawalsDisabled()"
+        "ErrorWithdrawalsDisabled"
       );
     }
   )
@@ -360,7 +358,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL1Token()"
+      "ErrorUnsupportedL1Token"
     );
   })
 
@@ -382,7 +380,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnsupportedL2Token()"
+      "ErrorUnsupportedL2Token"
     );
   })
 
@@ -404,7 +402,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
           wei`1 ether`,
           "0x"
         ),
-      "ErrorUnauthorizedMessenger()"
+      "ErrorUnauthorizedMessenger"
     );
   })
 
@@ -430,7 +428,7 @@ unit("Metis :: L1ERC20TokenBridge", ctxFactory)
             wei`1 ether`,
             "0x"
           ),
-        "ErrorWrongCrossDomainSender()"
+        "ErrorWrongCrossDomainSender"
       );
     }
   )
@@ -521,7 +519,8 @@ async function ctxFactory() {
     l2TokenBridgeEOA.address,
     l1TokenStub.address,
     l2TokenStub.address,
-    libAddressManagerStub.address
+    libAddressManagerStub.address,
+    chainId
   );
 
   const l1TokenBridgeProxy = await new OssifiableProxy__factory(

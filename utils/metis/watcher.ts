@@ -3,12 +3,17 @@ import {
   TransactionReceipt,
   TransactionResponse,
 } from "@ethersproject/providers";
-import { providers } from "ethers";
-import { Watcher, sleep } from "@metis.io/core-utils";
-import { getMessagesAndProofsForL2Transaction } from "@eth-optimism/message-relayer";
+import { Watcher, sleep } from "./core-utils";
+import {
+  CrossDomainMessagePair,
+  getMessagesAndProofsForL2Transaction,
+} from "./message-relayer";
 
-import { Contract, Transaction } from "ethers";
-import { L1CrossDomainMessengerMetis, L2CrossDomainMessengerMetis } from "../../typechain";
+import { Contract, Transaction, Wallet, providers } from "ethers";
+import {
+  L1CrossDomainMessengerMetis,
+  L2CrossDomainMessengerMetis,
+} from "../../typechain";
 
 export const initWatcher = async (
   l1Provider: JsonRpcProvider,
@@ -30,10 +35,11 @@ export const initWatcher = async (
       provider: l2Provider,
       messengerAddress: l2MessengerAddress,
     },
+    blocksToFetch: 15000,
   });
 };
 
-export interface CrossDomainMessagePair {
+export interface CrossDomainMessagePairTx {
   tx: Transaction;
   receipt: TransactionReceipt;
   remoteTx: Transaction;
@@ -41,7 +47,9 @@ export interface CrossDomainMessagePair {
 }
 
 export enum Direction {
+  // eslint-disable-next-line no-unused-vars
   L1ToL2,
+  // eslint-disable-next-line no-unused-vars
   L2ToL1,
 }
 
@@ -49,7 +57,7 @@ export const waitForXDomainTransaction = async (
   watcher: Watcher,
   tx: Promise<TransactionResponse> | TransactionResponse,
   direction: Direction
-): Promise<CrossDomainMessagePair> => {
+): Promise<CrossDomainMessagePairTx> => {
   const { src, dest } =
     direction === Direction.L1ToL2
       ? { src: watcher.l1, dest: watcher.l2 }
@@ -58,19 +66,19 @@ export const waitForXDomainTransaction = async (
   // await it if needed
   tx = await tx;
   // get the receipt and the full transaction
-  const receipt = await tx.wait();
-  const fullTx = await src.provider.getTransaction(tx.hash);
+  const receipt = (await tx.wait())!;
+  const fullTx = (await src.provider.getTransaction(tx.hash))!;
 
   // get the message hash which was created on the SentMessage
   const [xDomainMsgHash] = await watcher.getMessageHashesFromTx(src, tx.hash);
   // Get the transaction and receipt on the remote layer
-  const remoteReceipt = await watcher.getTransactionReceipt(
+  const remoteReceipt = (await watcher.getTransactionReceipt(
     dest,
     xDomainMsgHash
-  );
-  const remoteTx = await dest.provider.getTransaction(
+  ))!;
+  const remoteTx = (await dest.provider.getTransaction(
     remoteReceipt.transactionHash
-  );
+  ))!;
 
   return {
     tx: fullTx,
@@ -80,18 +88,117 @@ export const waitForXDomainTransaction = async (
   };
 };
 
+export const getMessagesAndProofs = async (
+  tx: Promise<TransactionResponse> | TransactionResponse,
+  l1Provider: providers.JsonRpcProvider,
+  l2Provider: providers.JsonRpcProvider,
+  l2CrossDomainMessenger: L2CrossDomainMessengerMetis,
+  stateCommitmentChain: Contract, // todo: replace Contract with StateCommitmentChain
+  chainId: number,
+  l2Signer: Wallet
+) => {
+  tx = await tx;
+
+  let messagePairs: Awaited<
+    ReturnType<typeof getMessagesAndProofsForL2Transaction>
+  >;
+  while (true) {
+    try {
+      messagePairs = await getMessagesAndProofsForL2Transaction(
+        l1Provider,
+        l2Provider,
+        stateCommitmentChain.address,
+        l2CrossDomainMessenger.address,
+        tx.hash,
+        chainId
+      );
+      break;
+    } catch (err: any) {
+      if (err.message.includes("unable to find state root batch for tx")) {
+        console.log(`no state root batch for tx yet, trying again in 50s...`);
+        await sleep(50000);
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  return messagePairs;
+};
+
+export const waitForOutsideFraudProofWindow = async (
+  messagePairs: CrossDomainMessagePair[],
+  stateCommitmentChain: Contract // todo: replace Contract with StateCommitmentChain
+) => {
+  for (const { proof } of messagePairs) {
+    while (true) {
+      try {
+        const isInside = await stateCommitmentChain.insideFraudProofWindow(
+          proof.stateRootBatchHeader
+        );
+        if (!isInside) {
+          break;
+        }
+        throw new Error("Proof is inside fraud proof window");
+      } catch (err: any) {
+        if (err.message.includes("Proof is inside fraud proof window")) {
+          await sleep(5000);
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+};
+
+export const relayXDomainMessages = async (
+  messagePairs: CrossDomainMessagePair[],
+  l1CrossDomainMessenger: L1CrossDomainMessengerMetis,
+  chainId: number
+) => {
+  for (const { message, proof } of messagePairs) {
+    while (true) {
+      try {
+        const result = await l1CrossDomainMessenger.relayMessageViaChainId(
+          chainId,
+          message.target,
+          message.sender,
+          message.message,
+          message.messageNonce,
+          proof
+        );
+        await result.wait();
+        break;
+      } catch (err: any) {
+        if (err.message.includes("execution failed due to an exception")) {
+          await sleep(5000);
+        } else if (err.message.includes("Nonce too low")) {
+          await sleep(5000);
+        } else if (err.message.includes("message has already been received")) {
+          console.log("message has already been received");
+          break;
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
+};
+
 /**
  * Relays all L2 => L1 messages found in a given L2 transaction.
  *
  * @param tx Transaction to find messages in.
  */
-export const relayXDomainMessages = async (
+export const relayXDomainMessagesWhole = async (
   tx: Promise<TransactionResponse> | TransactionResponse,
   l1Provider: providers.JsonRpcProvider,
   l2Provider: providers.JsonRpcProvider,
   l1CrossDomainMessenger: L1CrossDomainMessengerMetis,
   l2CrossDomainMessenger: L2CrossDomainMessengerMetis,
-  stateCommitmentChain: Contract // todo: replace Contract with StateCommitmentChain
+  stateCommitmentChain: Contract, // todo: replace Contract with StateCommitmentChain
+  chainId: number,
+  l2Signer: Wallet
 ): Promise<void> => {
   tx = await tx;
 
@@ -103,12 +210,14 @@ export const relayXDomainMessages = async (
         l2Provider,
         stateCommitmentChain.address,
         l2CrossDomainMessenger.address,
-        tx.hash
+        tx.hash,
+        chainId
       );
       break;
     } catch (err: any) {
       if (err.message.includes("unable to find state root batch for tx")) {
-        await sleep(5000);
+        console.log(`no state root batch for tx yet, trying again in 50s...`);
+        await sleep(50000);
       } else {
         throw err;
       }
@@ -118,7 +227,8 @@ export const relayXDomainMessages = async (
   for (const { message, proof } of messagePairs) {
     while (true) {
       try {
-        const result = await l1CrossDomainMessenger.relayMessage(
+        const result = await l1CrossDomainMessenger.relayMessageViaChainId(
+          chainId,
           message.target,
           message.sender,
           message.message,
@@ -126,7 +236,6 @@ export const relayXDomainMessages = async (
           proof
         );
         await result.wait();
-        
         break;
       } catch (err: any) {
         if (err.message.includes("execution failed due to an exception")) {
@@ -142,3 +251,5 @@ export const relayXDomainMessages = async (
     }
   }
 };
+
+export { CrossDomainMessagePair } from "./message-relayer";

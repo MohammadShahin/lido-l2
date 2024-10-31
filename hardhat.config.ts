@@ -1,16 +1,20 @@
 import * as dotenv from "dotenv";
 
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-verify";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "@nomiclabs/hardhat-solhint";
 
 import "./tasks/fork-node";
 import env from "./utils/env";
 
-dotenv.config();
+dotenv.config({
+  path: "./.env",
+  override: true,
+});
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -31,6 +35,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 100_000,
           },
+          evmVersion: "berlin",
         },
       },
     ],
@@ -46,16 +51,22 @@ const config: HardhatUserConfig = {
     eth_holesky: {
       url: env.string("RPC_ETH_HOLESKY", ""),
     },
+    eth_sepolia: {
+      url: env.string("RPC_ETH_SEPOLIA", ""),
+    },
 
     // Ethereum Fork Chains
     eth_mainnet_fork: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
     },
     eth_goerli_fork: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
     },
     eth_holesky_fork: {
-      url: "http://localhost:8545",
+      url: "http://127.0.0.1:8545",
+    },
+    eth_sepolia_fork: {
+      url: "http://127.0.0.1:8545",
     },
 
     // Arbitrum Public Chains
@@ -68,10 +79,10 @@ const config: HardhatUserConfig = {
 
     // Arbitrum Fork Chains
     arb_mainnet_fork: {
-      url: "http://localhost:8546",
+      url: "http://127.0.0.1:8546",
     },
     arb_goerli_fork: {
-      url: "http://localhost:8546",
+      url: "http://127.0.0.1:8546",
     },
 
     // Optimism Public Chains
@@ -84,10 +95,10 @@ const config: HardhatUserConfig = {
 
     // Optimism Fork Chains
     opt_mainnet_fork: {
-      url: "http://localhost:9545",
+      url: "http://127.0.0.1:9545",
     },
     opt_goerli_fork: {
-      url: "http://localhost:9545",
+      url: "http://127.0.0.1:9545",
     },
 
     // Metis Public Chains
@@ -100,16 +111,22 @@ const config: HardhatUserConfig = {
     mts_goerli: {
       url: env.string("RPC_MTS_GOERLI", ""),
     },
+    mts_sepolia: {
+      url: env.string("RPC_MTS_SEPOLIA", ""),
+    },
 
     // Metis Fork Chains
     mts_mainnet_fork: {
-      url: "http://localhost:4000",
+      url: "http://127.0.0.1:4000",
     },
     mts_holesky_fork: {
-      url: "http://localhost:4000",
+      url: "http://127.0.0.1:4000",
     },
     mts_goerli_fork: {
-      url: "http://localhost:4000",
+      url: "http://127.0.0.1:4000",
+    },
+    mts_sepolia_fork: {
+      url: "http://127.0.0.1:4000",
     },
   },
   gasReporter: {
@@ -120,14 +137,24 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: env.string("ETHERSCAN_API_KEY_ETH", ""),
       goerli: env.string("ETHERSCAN_API_KEY_ETH", ""),
+      sepolia: env.string("ETHERSCAN_API_KEY_ETH", ""),
       arbitrumGoerli: env.string("ETHERSCAN_API_KEY_ARB", ""),
       arbitrumOne: env.string("ETHERSCAN_API_KEY_ARB", ""),
       optimisticEthereum: env.string("ETHERSCAN_API_KEY_OPT", ""),
       optimisticGoerli: env.string("ETHERSCAN_API_KEY_OPT", ""),
-      metisMainnet: env.string("ETHERSCAN_API_KEY_MTS", ""),
-      metisHolesky: env.string("ETHERSCAN_API_KEY_MTS", ""),
-      metisGoerli: env.string("ETHERSCAN_API_KEY_MTS", ""),
+      metisMainnet: env.string("BLOCKSCOUT_API_KEY_MTS", ""),
+      metisSepolia: env.string("BLOCKSCOUT_API_KEY_MTS", ""),
     },
+    customChains: [
+      {
+        network: "metisSepolia",
+        chainId: 59902,
+        urls: {
+          apiURL: "https://sepolia-explorer-api.metisdevops.link/api",
+          browserURL: "https://sepolia-explorer.metisdevops.link",
+        },
+      },
+    ],
   },
   typechain: {
     externalArtifacts: [
@@ -138,7 +165,7 @@ const config: HardhatUserConfig = {
     ],
   },
   mocha: {
-    timeout: 20 * 60 * 60 * 1000, // 20 minutes for e2e tests
+    timeout: 70 * 60 * 60 * 1000, // 70 minutes for e2e tests
   },
 };
 

@@ -1,11 +1,12 @@
 # Lido L2
 
-This project contains the implementations of the L2 ERC20 token bridges for Arbitrum and Optimism chains. The current solution allows transferring ERC20 tokens between L1 and L2 chains.
+This project contains the implementations of the L2 ERC20 token bridges for Arbitrum, Optimism, Metis chains. The current solution allows transferring ERC20 tokens between L1 and L2 chains.
 
 To retrieve more detailed info about the bridging process, see the specifications for certain chains:
 
 - [Lido's Arbitrum Gateway](https://github.com/lidofinance/lido-l2/blob/main/contracts/arbitrum/README.md).
 - [Lido's Optimism Bridge](https://github.com/lidofinance/lido-l2/blob/main/contracts/optimism/README.md).
+- [Lido's Metis Bridge](https://github.com/MohammadShahin/lido-l2-metis/blob/master/contracts/metis/README.md).
 
 ## Project setup
 
@@ -48,6 +49,7 @@ The configuration of the deployment scripts happens via the ENV variables. The f
 - [`ETH_DEPLOYER_PRIVATE_KEY`](#ETH_DEPLOYER_PRIVATE_KEY) - The private key of the deployer account in the Ethereum network is used during the deployment process.
 - [`ARB_DEPLOYER_PRIVATE_KEY`](#ARB_DEPLOYER_PRIVATE_KEY) - The private key of the deployer account in the Arbitrum network is used during the deployment process.
 - [`OPT_DEPLOYER_PRIVATE_KEY`](#ARB_DEPLOYER_PRIVATE_KEY) - The private key of the deployer account in the Optimism network is used during the deployment process.
+- [`MTS_DEPLOYER_PRIVATE_KEY`](#MTS_DEPLOYER_PRIVATE_KEY) - The private key of the deployer account in the Metis network is used during the deployment process.
 - [`L1_PROXY_ADMIN`](#L1_PROXY_ADMIN) - The address to grant admin rights of the `OssifiableProxy` on the L1 bridge
 - [`L1_BRIDGE_ADMIN`](#L1_BRIDGE_ADMIN) - Address to grant the `DEFAULT_ADMIN_ROLE` on the L1 bridge
 - [`L2_PROXY_ADMIN`](#L2_PROXY_ADMIN) - The address to grant admin rights of the `OssifiableProxy` on the L2 bridge
@@ -84,6 +86,34 @@ To run the deployment of the ERC20 token gateway for the Ethereum <-> Optimism c
 npm run optimism:deploy
 ```
 
+### Deploying Metis bridge
+
+To run the deployment of the ERC20 token gateway for the Ethereum <-> Metis chains use the following command:
+
+```bash
+npm run metis:deploy
+```
+
+## L2 executor deployment (Metis).
+
+Fill these ENV variables.
+
+```bash
+L1_EXECUTOR_ADDR=
+EXECUTION_GUARDIAN=
+
+EXECUTION_DELAY=0
+# 24 * 60 * 60
+EXECUTION_GRACE_PERIOD=86400
+EXECUTION_MIN_DELAY=0
+EXECUTION_MAX_DELAY=1
+```
+
+Run the following script:
+```
+npm run metis:deploy:bridge-executor
+```
+
 ## Tests running
 
 ### Unit tests
@@ -92,7 +122,7 @@ To run unit tests use one of the following commands:
 
 ```bash
 
-# Run tests for both Arbitrum and Optimism bridges
+# Run tests for both Arbitrum, Optimism, and Metis bridges
 npm run test:unit
 
 # Run tests only for Arbitrum gateway
@@ -100,14 +130,17 @@ npm run arbitrum:test:unit
 
 # Run tests only for Optimism bridge
 npm run optimism:test:unit
+
+# Run tests only for Metis bridge
+npm run metis:test:unit
 ```
 
 ### Integration tests
 
-Before running integration tests, run the hardhat forked nodes in the standalone tabs corresponding to `TESTING_ARB_NETWORK` \ `TESTING_OPT_NETWORK` env variable or if it's not set use `mainnet` network. Example of the commands for the `mainnet` network:
+Before running integration tests, run the hardhat forked nodes in the standalone tabs corresponding to `TESTING_ARB_NETWORK` \ `TESTING_OPT_NETWORK` \ `TESTING_MTS_NETWORK` env variable or if it's not set use `mainnet` network. Example of the commands for the `mainnet` network:
 
 ```bash
-# Required to run both Arbitrum and Optimism integraton tests
+# Required to run both Arbitrum, Optimism, and Metis integraton tests
 npm run fork:eth:mainnet
 
 # Required to run Optimism integration tests
@@ -115,12 +148,15 @@ npm run fork:opt:mainnet
 
 # Required to run Arbitrum integration tests
 npm run fork:arb:mainnet
+
+# Required to run Metis integration tests
+npm run fork:mts:mainnet
 ```
 
 The integration tests might be run via the following commands:
 
 ```bash
-# Run integration tests for both Arbitrum and Optimism bridges
+# Run integration tests for both Arbitrum, Optimism, and Metis bridges
 npm run test:integration
 
 # Run integration tests for Arbitrum bridge
@@ -128,6 +164,9 @@ npm run arbitrum:test:integration
 
 # Run integration tests for Optimism bridge
 npm run optimism:test:integration
+
+# Run integration tests for Metis bridge
+npm run metis:test:integration
 ```
 
 Additionally, tests might be run on the deployed contracts. To do it, set the following variables values in the `.env` file:
@@ -155,6 +194,13 @@ TESTING_OPT_L1_TOKEN=
 TESTING_OPT_L2_TOKEN=
 TESTING_OPT_L1_ERC20_TOKEN_BRIDGE=
 TESTING_OPT_L2_ERC20_TOKEN_BRIDGE=
+
+# Addresses of the Metis bridge
+TESTING_MTS_NETWORK=
+TESTING_MTS_L1_TOKEN=
+TESTING_MTS_L2_TOKEN=
+TESTING_MTS_L1_ERC20_TOKEN_BRIDGE=
+TESTING_MTS_L2_ERC20_TOKEN_BRIDGE=
 ```
 
 ### E2E tests
@@ -165,10 +211,12 @@ E2E tests run on the real contracts deployed on the testnet networks. To run suc
 [`TESTING_OPT_LDO_HOLDER_PRIVATE_KEY`](#TESTING_OPT_LDO_HOLDER_PRIVATE_KEY)
 [`TESTING_ARB_LDO_HOLDER_PRIVATE_KEY`](#TESTING_ARB_LDO_HOLDER_PRIVATE_KEY)
 
+> Metis doesn't depend on `LDO_HOLDER_PRIVATE_KEY` and instead it relies on AragonAgentMock contract to execute cross domain messages for governance.
+
 To run E2E tests use the following commands:
 
 ```bash
-# Run E2E tests for both Arbitrum and Optimism bridges
+# Run E2E tests for both Arbitrum, Optimism, and Metis bridges
 npm run test:e2e
 
 # Run E2E tests for Arbitrum bridge
@@ -176,6 +224,9 @@ npm run arbitrum:test:e2e
 
 # Run E2E tests for Optimism bridge
 npm run optimism:test:e2e
+
+# Run E2E tests for Metis bridge
+npm run metis:test:e2e
 ```
 
 Additionally, tests might be run on the deployed contracts. To do it, set the following variables values in the `.env` file:
@@ -201,6 +252,13 @@ TESTING_OPT_L1_TOKEN=
 TESTING_OPT_L2_TOKEN=
 TESTING_OPT_L1_ERC20_TOKEN_BRIDGE=
 TESTING_OPT_L2_ERC20_TOKEN_BRIDGE=
+
+# Addresses of the Metis bridge
+TESTING_MTS_NETWORK=
+TESTING_MTS_L1_TOKEN=
+TESTING_MTS_L2_TOKEN=
+TESTING_MTS_L1_ERC20_TOKEN_BRIDGE=
+TESTING_MTS_L2_ERC20_TOKEN_BRIDGE=
 ```
 
 ### Acceptance tests
@@ -225,6 +283,12 @@ TESTING_OPT_L1_TOKEN=
 TESTING_OPT_L2_TOKEN=
 TESTING_OPT_L1_ERC20_TOKEN_BRIDGE=
 TESTING_OPT_L2_ERC20_TOKEN_BRIDGE=
+
+# Addresses of the Metis bridge
+TESTING_MTS_L1_TOKEN=
+TESTING_MTS_L2_TOKEN=
+TESTING_MTS_L1_ERC20_TOKEN_BRIDGE=
+TESTING_MTS_L2_ERC20_TOKEN_BRIDGE=
 ```
 
 To run the acceptance tests, use the following commands:
@@ -235,6 +299,9 @@ npm run optimism:test:acceptance
 
 # Arbitrum bridge
 npm run arbitrum:test:acceptance
+
+# Metis bridge
+npm run metis:test:acceptance
 ```
 
 ## Code Coverage
@@ -292,6 +359,14 @@ Address of the RPC node for **Mainnet** Optimism network.
 > Default value: `https://mainnet.optimism.io`
 
 
+#### `RPC_MTS_SEPOLIA`
+
+Address of the RPC node for **Sepolia** Metis network.
+
+#### `RPC_MTS_MAINNET`
+
+Address of the RPC node for **mainnet (Andromeda)** Metis network.
+
 ### Etherscan
 
 Below variables are required for successfull verification of the contracts on block explorer for certain networks.
@@ -308,9 +383,14 @@ API key from the [Arbiscan](https://arbiscan.io/) block explorer.
 
 API key from the [Optimistic Ethereum](https://optimistic.etherscan.io/) block explorer.
 
+#### BLOCKSCOUT_API_KEY_MTS
+> Metis network doesn't use Etherscan. It uses Blockscout.
+
+Not applicable for blockscout, use any value. Note that a value for this env must be provided, if the API is needed.
+
 ### Bridge/Gateway Deployment
 
-Below variables used in the Arbitrum/Optimism bridge deployment process.
+Below variables used in the Arbitrum/Optimism/Metis bridge deployment process.
 
 #### `TOKEN`
 
@@ -339,6 +419,10 @@ The private key of the deployer account in the Arbitrum network is used during t
 #### `OPT_DEPLOYER_PRIVATE_KEY`
 
 The private key of the deployer account in the Optimism network is used during the deployment process.
+
+#### `MTS_DEPLOYER_PRIVATE_KEY`
+
+The private key of the deployer account in the Metis network is used during the deployment process.
 
 #### `L1_PROXY_ADMIN`
 
@@ -508,6 +592,27 @@ Address of the L2 ERC20 token bridge used in the Acceptance Integration & E2E (w
 
 > Default value: `0x447CD1794d209Ac4E6B4097B34658bc00C4d0a51`
 
+
+#### `TESTING_MTS_NETWORK`
+
+Name of the network environments used for Metis Integration & E2E testing. Might be one of: `mainnet`, `sepolia`.
+
+#### `TESTING_MTS_L1_TOKEN`
+
+Address of the token to use in the Acceptance Integration & E2E (when `TESTING_USE_DEPLOYED_CONTRACTS` is set to true) testing of the bridging between Ethereum and Metis networks.
+
+#### `TESTING_MTS_L2_TOKEN`
+
+Address of the token minted on L2 in the Acceptance Integration & E2E (when `TESTING_USE_DEPLOYED_CONTRACTS` is set to true) testing of the bridging between Ethereum and Metis networks.
+
+#### `TESTING_MTS_L1_ERC20_TOKEN_BRIDGE`
+
+Address of the L1 ERC20 token bridge used in the Acceptance Integration & E2E (when `TESTING_USE_DEPLOYED_CONTRACTS` is set to true) testing of the bridging between Ethereum and Metis networks.
+
+#### `TESTING_MTS_L2_ERC20_TOKEN_BRIDGE`
+
+Address of the L2 ERC20 token bridge used in the Acceptance Integration & E2E (when `TESTING_USE_DEPLOYED_CONTRACTS` is set to true) testing of the bridging between Ethereum and Metis networks.
+
 ### Integration Testing
 
 #### `TESTING_USE_DEPLOYED_CONTRACTS`
@@ -526,15 +631,20 @@ Address of the deployed Governance Bridge Executor in the Arbitrum network. If s
 
 Address of the deployed Governance Bridge Executor in the Optimism network. If set, this contract will be used for integration tests of Governance Bridge.
 
+#### `TESTING_MTS_GOV_BRIDGE_EXECUTOR`
+
+Address of the deployed Governance Bridge Executor in the Metis network.
+
 ### E2E Testing
 
 #### `TESTING_PRIVATE_KEY`
 
 The private key from the address which holds:
 
-- Goerli and Arbitrum/Optimistic Goerli Ether to launch Arbitrum/Optimism E2E tests
+- Goerli and (Arbitrum/Optimistic Goerli or Metis Sepolia) Ether to launch Arbitrum/Optimism/Metis E2E tests
 
 The test Ether might be retrived via [Paradigm Faucet](https://faucet.paradigm.xyz/).
+Metis Faucet can be found [here](https://faucet.metis.io).
 
 #### `TESTING_OPT_LDO_HOLDER_PRIVATE_KEY`
 

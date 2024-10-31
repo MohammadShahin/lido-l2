@@ -1,4 +1,4 @@
-import { AccessControl } from "../../typechain";
+import { AccessControl, AccessControlEnumerable } from "../../typechain";
 
 export async function getRoleHolders(
   accessControl: AccessControl,
@@ -38,4 +38,19 @@ export async function getRoleHolders(
     }
   }
   return accounts;
+}
+
+export async function getHoldersEnumerable(
+  accessControlEnumerable: AccessControlEnumerable,
+  role: string
+) {
+  const roleCount = (
+    await accessControlEnumerable.getRoleMemberCount(role)
+  ).toNumber();
+  const holders = new Set<string>();
+  for (let i = 0; i < roleCount; i++) {
+    const disabler = await accessControlEnumerable.getRoleMember(role, i);
+    holders.add(disabler);
+  }
+  return holders;
 }

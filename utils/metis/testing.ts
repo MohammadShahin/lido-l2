@@ -1,5 +1,4 @@
-import { Signer } from "ethers";
-import { JsonRpcProvider } from "@ethersproject/providers";
+import { Signer, ethers } from "ethers";
 
 import {
   IERC20,
@@ -27,7 +26,7 @@ export default function testing(networkName: NetworkName) {
   return {
     async getAcceptanceTestSetup() {
       const [ethProvider, mtsProvider] = ethMtsNetworks.getProviders({
-        forking: true,
+        forking: false,
       });
 
       const bridgeContracts = await loadDeployedBridges(
@@ -120,8 +119,11 @@ export default function testing(networkName: NetworkName) {
 
       const bridgeContracts = await loadDeployedBridges(l1Tester, l2Tester);
 
-      const { L1CrossDomainMessenger, L2CrossDomainMessenger, LibAddressManagerMetis } =
-        contracts(networkName, { forking: false });
+      const {
+        L1CrossDomainMessenger,
+        L2CrossDomainMessenger,
+        LibAddressManagerMetis,
+      } = contracts(networkName, { forking: false });
 
       const l1CrossDomainMessenger = L1CrossDomainMessenger.connect(l1Tester);
       const l2CrossDomainMessenger = L2CrossDomainMessenger.connect(l2Tester);
@@ -182,8 +184,8 @@ async function loadDeployedBridges(
 
 async function deployTestBridge(
   networkName: NetworkName,
-  ethProvider: JsonRpcProvider,
-  mtsProvider: JsonRpcProvider
+  ethProvider: ethers.providers.JsonRpcProvider,
+  mtsProvider: ethers.providers.JsonRpcProvider
 ) {
   const ethDeployer = testingUtils.accounts.deployer(ethProvider);
   const mtsDeployer = testingUtils.accounts.deployer(mtsProvider);
@@ -224,14 +226,22 @@ async function deployTestBridge(
 
   await l1BridgingManagement.setup({
     bridgeAdmin: ethDeployer.address,
-    depositsEnabled: true,
-    withdrawalsEnabled: true,
+    depositsEnabled: false,
+    withdrawalsEnabled: false,
+    depositsEnablers: [ethDeployer.address],
+    withdrawalsEnablers: [ethDeployer.address],
+    depositsDisablers: [ethDeployer.address],
+    withdrawalsDisablers: [ethDeployer.address],
   });
 
   await l2BridgingManagement.setup({
     bridgeAdmin: mtsDeployer.address,
-    depositsEnabled: true,
-    withdrawalsEnabled: true,
+    depositsEnabled: false,
+    withdrawalsEnabled: false,
+    depositsEnablers: [ethDeployer.address],
+    withdrawalsEnablers: [ethDeployer.address],
+    depositsDisablers: [ethDeployer.address],
+    withdrawalsDisablers: [ethDeployer.address],
   });
 
   return {
